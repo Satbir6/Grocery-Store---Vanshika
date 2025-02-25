@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Add Product - Fresh Mart{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-emerald-50 to-white py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Add New Product</h1>
+            <p class="mt-2 text-gray-600">Fill in the details to list your product on Fresh Mart</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <form method="POST" enctype="multipart/form-data" class="p-6 space-y-8">
+                <!-- Basic Information -->
+                <div class="space-y-6">
+                    <h2 class="text-xl font-semibold text-gray-900 border-b pb-2">Basic Information</h2>
+
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">Product Name*</label>
+                        <input type="text" name="name" id="name" required placeholder="Enter product name"
+                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    </div>
+
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Description*</label>
+                        <textarea name="description" id="description" rows="4" required
+                            placeholder="Describe your product"
+                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"></textarea>
+                        <p class="mt-1 text-sm text-gray-500">Include key features, specifications, and any important
+                            details.</p>
+                    </div>
+                </div>
+
+                <!-- Category Selection -->
+                <div class="space-y-6">
+                    <h2 class="text-xl font-semibold text-gray-900 border-b pb-2">Category</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-gray-700">Main Category*</label>
+                            <select name="category" id="category" required onchange="updateSubcategories()"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                <option value="">Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="subcategory"
+                                class="block text-sm font-medium text-gray-700">Subcategory*</label>
+                            <select name="subcategory" id="subcategory" required
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                <option value="">Select main category first</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing and Stock -->
+                <div class="space-y-6">
+                    <h2 class="text-xl font-semibold text-gray-900 border-b pb-2">Pricing & Stock</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="price" class="block text-sm font-medium text-gray-700">Price (₹)*</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <input type="number" name="price" id="price" step="0.01" min="0" required
+                                    placeholder="0.00"
+                                    class="block w-full pl-7 rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="stock" class="block text-sm font-medium text-gray-700">Stock*</label>
+                            <input type="number" name="stock" id="stock" min="0" required
+                                placeholder="Available quantity"
+                                class="mt-1 block w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Image -->
+                <div class="space-y-6">
+                    <h2 class="text-xl font-semibold text-gray-900 border-b pb-2">Product Image</h2>
+
+                    <div
+                        class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg relative">
+                        <div class="space-y-1 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
+                                viewBox="0 0 48 48">
+                                <path
+                                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <div class="flex text-sm text-gray-600">
+                                <label for="image"
+                                    class="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-emerald-500">
+                                    <span>Upload a file</span>
+                                    <input id="image" name="image" type="file" class="sr-only" accept="image/*"
+                                        onchange="previewImage(this)">
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                        </div>
+                        <!-- Image Preview -->
+                        <div id="imagePreview" class="absolute inset-0 hidden">
+                            <img src="" alt="Preview" class="w-full h-full object-contain p-4">
+                            <button type="button" onclick="removeImage()"
+                                class="absolute top-2 right-2 p-1 bg-white rounded-full shadow-sm hover:bg-gray-100">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex gap-4 pt-4">
+
+                    <button type="submit"
+                    class="flex-1 py-2.5 px-4 border border-emerald-600 rounded-lg shadow-sm text-sm font-medium text-emerald-600 bg-white hover:bg-emerald-700 hover:text-white hover:border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                    Add Product
+                </button>
+                    <a href="{{ url_for('seller_dashboard') }}"
+                        class="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition duration-200 text-center">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Update subcategories based on selected category
+    function updateSubcategories() {
+        const categoryId = document.getElementById('category').value;
+        const subcategorySelect = document.getElementById('subcategory');
+
+        // Clear current options
+        subcategorySelect.innerHTML = '<option value="">Select a subcategory</option>';
+
+        if (categoryId) {
+            fetch(`/api/subcategories/${categoryId}`)
+                .then(response => response.json())
+                .then(subcategories => {
+                    subcategories.forEach(sub => {
+                        const option = document.createElement('option');
+                        option.value = sub.id;
+                        option.textContent = sub.name;
+                        subcategorySelect.appendChild(option);
+                    });
+                });
+        }
+    }
+
+    function previewImage(input) {
+        const preview = document.getElementById('imagePreview');
+        const img = preview.querySelector('img');
+        const uploadIcon = preview.previousElementSibling;
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                img.src = e.target.result;
+                preview.classList.remove('hidden');
+                uploadIcon.classList.add('hidden');
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeImage() {
+        const input = document.getElementById('image');
+        const preview = document.getElementById('imagePreview');
+        const uploadIcon = preview.previousElementSibling;
+
+        input.value = '';
+        preview.classList.add('hidden');
+        uploadIcon.classList.remove('hidden');
+    }
+
+    // Enable drag and drop
+    const dropZone = document.querySelector('.border-dashed');
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-emerald-500');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-emerald-500');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-emerald-500');
+
+        const input = document.getElementById('image');
+        input.files = e.dataTransfer.files;
+        previewImage(input);
+    });
+
+
+
+
+
+</script>
+{% endblock %}

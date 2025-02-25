@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - Fresh Mart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Cart Items -->
+        <div class="flex-1">
+            {% if cart.items %}
+                {% for item in cart.items %}
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+                    <div class="flex items-center gap-6">
+                        <!-- Product Image -->
+                        <div class="w-24 h-24 flex-shrink-0">
+                            <img src="{{ item.product.image_url }}" 
+                                 alt="{{ item.product.name }}" 
+                                 class="w-full h-full object-cover rounded-md">
+                        </div>
+
+                        <!-- Product Details -->
+                        <div class="flex-1">
+                            <h3 class="text-lg font-medium text-gray-900">{{ item.product.name }}</h3>
+                            <div class="mt-1 flex items-center">
+                                {% if item.product.discount_percent > 0 %}
+                                    <p class="text-lg font-medium text-gray-900">${{ "%.2f"|format(item.product.discounted_price) }}</p>
+                                    <p class="ml-2 text-sm text-gray-500 line-through">${{ "%.2f"|format(item.product.price) }}</p>
+                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                        Save {{ item.product.discount_percent }}%
+                                    </span>
+                                {% else %}
+                                    <p class="text-lg font-medium text-gray-900">${{ "%.2f"|format(item.product.price) }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Quantity Controls -->
+                        <div class="flex items-center">
+                            <form action="{{ url_for('update_cart_item', item_id=item.id) }}" method="POST" class="flex items-center">
+                                <button type="submit" name="quantity" value="{{ item.quantity - 1 }}" 
+                                        class="p-1 text-gray-400 hover:text-gray-500 {% if item.quantity <= 1 %}opacity-50 cursor-not-allowed{% endif %}"
+                                        {% if item.quantity <= 1 %}disabled{% endif %}>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                    </svg>
+                                </button>
+                                <span class="mx-4 text-gray-900">{{ item.quantity }}</span>
+                                <button type="submit" name="quantity" value="{{ item.quantity + 1 }}"
+                                        class="p-1 text-gray-400 hover:text-gray-500">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Subtotal and Remove -->
+                        <div class="text-right">
+                            <p class="text-lg font-medium text-gray-900">${{ "%.2f"|format(item.subtotal) }}</p>
+                            <form action="{{ url_for('remove_from_cart', item_id=item.id) }}" method="POST" class="mt-1">
+                                <button type="submit" class="text-sm text-red-600 hover:text-red-500">Remove</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Empty Cart State -->
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-lg font-medium text-gray-900">Your cart is empty</h3>
+                    <p class="mt-1 text-gray-500">Add some items to your cart to continue shopping.</p>
+                    <div class="mt-6">
+                        <a href="{{ url_for('products') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700">
+                            Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Order Summary -->
+        {% if cart.items %}
+        <div class="lg:w-96">
+            <div class="bg-white rounded-lg shadow-sm p-6 sticky top-20">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">Order Summary</h2>
+                
+                <!-- Summary Items -->
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span class="text-gray-900">${{ "%.2f"|format(cart.total) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Shipping</span>
+                        <span class="text-gray-900">$4.99</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tax</span>
+                        <span class="text-gray-900">${{ "%.2f"|format(cart.total * 0.1) }}</span>
+                    </div>
+                    {% if cart.total >= 50 %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Free Shipping Discount</span>
+                        <span class="text-green-600">-$4.99</span>
+                    </div>
+                    {% endif %}
+                    <div class="border-t pt-4 flex justify-between">
+                        <span class="text-lg font-medium text-gray-900">Total</span>
+                        <span class="text-lg font-medium text-gray-900">
+                            ${{ "%.2f"|format(cart.total + (0 if cart.total >= 50 else 4.99) + (cart.total * 0.1)) }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Promo Code -->
+                <div class="mt-6">
+                    <label for="promo-code" class="block text-sm font-medium text-gray-700">Promo Code</label>
+                    <div class="mt-1 flex space-x-2">
+                        <input type="text" id="promo-code" name="promo-code" 
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                        <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-emerald-700 bg-emerald-100 hover:bg-emerald-200">
+                            Apply
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Checkout Button -->
+                <div class="mt-6">
+                    <a href="{{ url_for('checkout') }}" 
+                       class="block w-full bg-emerald-600 text-white py-3 px-4 rounded-md text-center font-medium hover:bg-emerald-700">
+                        Proceed to Checkout
+                    </a>
+                </div>
+
+                <!-- Continue Shopping -->
+                <div class="mt-4 text-center">
+                    <a href="{{ url_for('products') }}" class="text-sm text-emerald-600 hover:text-emerald-500">
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - Fresh Mart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Checkout Form -->
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+            
+            <!-- Contact Information -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input type="email" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <input type="tel" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Shipping Address</h2>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Apartment, suite, etc.</label>
+                        <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Payment Method</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
+                        <input type="radio" name="payment" id="card" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300">
+                        <label for="card" class="flex-1">
+                            <span class="block text-sm font-medium text-gray-900">Credit Card</span>
+                            <span class="block text-sm text-gray-500">Pay securely with your credit card</span>
+                        </label>
+                        <div class="flex items-center space-x-2">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-8">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-8">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="1234 5678 9012 3456">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="MM/YY">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="123">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div>
+            <div class="bg-white rounded-lg shadow-sm p-6 sticky top-24">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
+                
+                <!-- Order Items -->
+                <div class="divide-y divide-gray-200">
+                    {% for item in [
+                        {'name': 'Organic Bananas', 'quantity': 2, 'price': '2.99'},
+                        {'name': 'Fresh Whole Milk', 'quantity': 1, 'price': '3.49'},
+                        {'name': 'Whole Wheat Bread', 'quantity': 1, 'price': '2.49'}
+                    ] %}
+                    <div class="py-4 flex justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ item.name }}</p>
+                            <p class="text-sm text-gray-500">Qty: {{ item.quantity }}</p>
+                        </div>
+                        <p class="text-sm font-medium text-gray-900">${{ item.price }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Promo Code -->
+                <div class="mt-6">
+                    <div class="flex space-x-4">
+                        <input type="text" placeholder="Promo code" class="flex-1 rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        <button class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Totals -->
+                <div class="mt-6 space-y-2">
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <p>Subtotal</p>
+                        <p>$11.96</p>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <p>Shipping</p>
+                        <p>$5.00</p>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <p>Tax</p>
+                        <p>$1.02</p>
+                    </div>
+                    <div class="pt-4 flex justify-between text-lg font-semibold text-gray-900">
+                        <p>Total</p>
+                        <p>$17.98</p>
+                    </div>
+                </div>
+
+                <!-- Place Order Button -->
+                <button class="w-full mt-8 bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center">
+                    <span class="mr-2">Place Order</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
+
+                <!-- Security Notice -->
+                <p class="mt-4 text-sm text-gray-500 text-center">
+                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Secure checkout powered by Stripe
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
