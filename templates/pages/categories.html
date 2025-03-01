@@ -23,7 +23,7 @@
             <div class="absolute bottom-0 left-0 p-6">
                 <h3 class="text-2xl font-semibold text-white mb-2">Fruits & Vegetables</h3>
                 <p class="text-gray-300 mb-4">Fresh produce delivered to your door</p>
-                <a href="/products?category=fruits-vegetables" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
+                <a href="{{ url_for('products', category=1) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
                     Browse Products <span class="ml-2">→</span>
                 </a>
             </div>
@@ -38,7 +38,7 @@
             <div class="absolute bottom-0 left-0 p-6">
                 <h3 class="text-2xl font-semibold text-white mb-2">Dairy & Eggs</h3>
                 <p class="text-gray-300 mb-4">Farm-fresh dairy products</p>
-                <a href="/products?category=dairy-eggs" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
+                <a href="{{ url_for('products', category=2) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
                     Browse Products <span class="ml-2">→</span>
                 </a>
             </div>
@@ -53,7 +53,7 @@
             <div class="absolute bottom-0 left-0 p-6">
                 <h3 class="text-2xl font-semibold text-white mb-2">Bakery</h3>
                 <p class="text-gray-300 mb-4">Freshly baked breads and pastries</p>
-                <a href="/products?category=bakery" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
+                <a href="{{ url_for('products', category=3) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
                     Browse Products <span class="ml-2">→</span>
                 </a>
             </div>
@@ -68,7 +68,7 @@
             <div class="absolute bottom-0 left-0 p-6">
                 <h3 class="text-2xl font-semibold text-white mb-2">Meat & Seafood</h3>
                 <p class="text-gray-300 mb-4">Premium quality meats and seafood</p>
-                <a href="/products?category=meat-seafood" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
+                <a href="{{ url_for('products', category=4) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
                     Browse Products <span class="ml-2">→</span>
                 </a>
             </div>
@@ -83,7 +83,7 @@
             <div class="absolute bottom-0 left-0 p-6">
                 <h3 class="text-2xl font-semibold text-white mb-2">Pantry</h3>
                 <p class="text-gray-300 mb-4">Essential cooking ingredients</p>
-                <a href="/products?category=pantry" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
+                <a href="{{ url_for('products', category=5) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
                     Browse Products <span class="ml-2">→</span>
                 </a>
             </div>
@@ -98,7 +98,7 @@
             <div class="absolute bottom-0 left-0 p-6">
                 <h3 class="text-2xl font-semibold text-white mb-2">Beverages</h3>
                 <p class="text-gray-300 mb-4">Refreshing drinks and juices</p>
-                <a href="/products?category=beverages" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
+                <a href="{{ url_for('products', category=6) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
                     Browse Products <span class="ml-2">→</span>
                 </a>
             </div>
@@ -121,7 +121,7 @@
                 'Fresh Fish',
                 'Premium Cuts'
             ] %}
-            <a href="/products?subcategory={{ subcategory|lower|replace(' ', '-') }}" 
+            <a href="{{ url_for('products', subcategory=loop.index) }}" 
                class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition duration-300">
                 <h3 class="text-gray-900 font-medium">{{ subcategory }}</h3>
             </a>

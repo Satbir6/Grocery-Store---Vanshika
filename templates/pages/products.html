@@ -32,7 +32,7 @@
                                     <input type="checkbox" 
                                            class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                            value="{{ category.id }}"
-                                           {% if selected_category == category.id %}checked{% endif %}
+                                           {% if selected_category|int == category.id|int %}checked{% endif %}
                                            onchange="updateCategory(this.value, this.checked)">
                                     <span class="ml-2 text-sm font-medium text-gray-700">{{ category.name }}</span>
                                 </label>
@@ -43,7 +43,7 @@
                                             <input type="checkbox" 
                                                    class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                                    value="{{ subcategory.id }}"
-                                                   {% if selected_subcategory == subcategory.id %}checked{% endif %}
+                                                   {% if selected_subcategory|int == subcategory.id|int %}checked{% endif %}
                                                    onchange="updateFilters('subcategory', this.value, this.checked)">
                                             <span class="ml-2 text-sm text-gray-600">{{ subcategory.name }}</span>
                                         </label>
@@ -150,13 +150,23 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
                         </a>
+                        {% if current_user.is_authenticated %}
                         <button type="button" 
-                                onclick="addToWishlist({{ product.id }}); return false;"
-                                class="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors duration-200">
-                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="wishlist-btn p-2 bg-white rounded-full hover:bg-gray-100 transition-colors duration-200 {% if product.id in user_wishlist_product_ids %}text-red-500 hover:text-red-600{% else %}text-gray-600 hover:text-red-500{% endif %}"
+                                data-product-id="{{ product.id }}"
+                                data-in-wishlist="{% if product.id in user_wishlist_product_ids %}true{% else %}false{% endif %}"
+                                {% if product.id in user_wishlist_product_ids %}data-wishlist-item-id="{{ user_wishlist_items[product.id] }}"{% endif %}>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                             </svg>
                         </button>
+                        {% else %}
+                        <a href="{{ url_for('login') }}" class="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors duration-200">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -232,6 +242,11 @@ function updateFilters(type, value, checked) {
         urlParams.delete(type);
     }
     
+    // If changing category, remove subcategory
+    if (type === 'category' && !checked) {
+        urlParams.delete('subcategory');
+    }
+    
     window.location.href = `${window.location.pathname}?${urlParams.toString()}`;
 }
 
@@ -257,11 +272,6 @@ function updateSort(value) {
 
 function clearAllFilters() {
     window.location.href = window.location.pathname;
-}
-
-function addToWishlist(productId) {
-    // Implement wishlist functionality
-    console.log('Adding to wishlist:', productId);
 }
 
 function updateCategory(categoryId, checked) {
