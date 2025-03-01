@@ -204,6 +204,9 @@ class CartItem(db.Model):
     cart = relationship('Cart', back_populates='items')
     product = relationship('Product')
 
+    @property
+    def subtotal(self):
+        return self.product.price * self.quantity
 
     def __repr__(self):
         return f"<CartItem Product {self.product_id} (Qty: {self.quantity})>"
