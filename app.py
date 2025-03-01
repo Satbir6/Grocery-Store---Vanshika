@@ -547,14 +547,21 @@ def edit_product(id):
                 return redirect(request.url)
             product.image_url = image_path
         
+        # Update product details
         product.name = request.form['name']
         product.description = request.form['description']
         product.price = float(request.form['price'])
         product.stock = int(request.form['stock'])
         product.sub_category_id = int(request.form['subcategory'])
-        db.session.commit()
-        flash('Product updated successfully', 'success')
-        return redirect(url_for('seller_dashboard'))
+        
+        try:
+            db.session.commit()
+            flash('Product updated successfully', 'success')
+            return redirect(url_for('seller_dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating product: {str(e)}', 'error')
+            return redirect(request.url)
     
     categories = Category.query.all()
     return render_template('pages/edit-product.html', product=product, categories=categories)

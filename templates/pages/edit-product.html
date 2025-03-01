@@ -3,122 +3,226 @@
 {% block title %}Edit Product - Fresh Mart{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="bg-white rounded-lg shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h1 class="text-2xl font-bold text-gray-900">Edit Product</h1>
+<div class="bg-emerald-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex items-center space-x-2">
+            <a href="{{ url_for('seller_dashboard') }}" class="text-emerald-600 hover:text-emerald-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">Edit Product</h1>
         </div>
-        <form method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
-            <!-- Product Name -->
-            <div>
-                <label for="name" class="block text-sm font-medium text-gray-700">Product Name</label>
-                <input type="text" name="name" id="name" required value="{{ product.name }}"
-                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-            </div>
+        <p class="mt-2 text-lg text-gray-600">Update your product information and details</p>
+    </div>
+</div>
 
-            <!-- Description -->
-            <div>
-                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea name="description" id="description" rows="4" required
-                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">{{ product.description }}</textarea>
-            </div>
-
-            <!-- Category -->
-            <div>
-                <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
-                <select name="category" id="category" required
-                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="">Select a category</option>
-                    {% for category in categories %}
-                    <option value="{{ category.id }}" {% if category.id == product.category_id %}selected{% endif %}>
-                        {{ category.name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Price and Stock -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="price" class="block text-sm font-medium text-gray-700">Price ($)</label>
-                    <input type="number" name="price" id="price" step="0.01" min="0" required value="{{ product.price }}"
-                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                </div>
-                <div>
-                    <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
-                    <input type="number" name="stock" id="stock" min="0" required value="{{ product.stock }}"
-                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                </div>
-            </div>
-
-            <!-- Current Image Preview -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Current Image</label>
-                {% if product.image_url %}
-                <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" class="h-32 w-32 object-cover rounded-lg">
-                {% else %}
-                <p class="text-sm text-gray-500">No image uploaded</p>
-                {% endif %}
-            </div>
-
-            <!-- Product Image Upload -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Update Image</label>
-                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-                    <div class="space-y-1 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <div class="flex text-sm text-gray-600">
-                            <label for="image" class="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-emerald-500">
-                                <span>Upload a new file</span>
-                                <input id="image" name="image" type="file" class="sr-only" accept="image/*">
-                            </label>
-                            <p class="pl-1">or drag and drop</p>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-6">
+                {% for category, message in messages %}
+                    <div class="rounded-md p-4 mb-4 {% if category == 'success' %}bg-green-50 border border-green-200{% elif category == 'error' or category == 'danger' %}bg-red-50 border border-red-200{% else %}bg-blue-50 border border-blue-200{% endif %}">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                {% if category == 'success' %}
+                                    <svg class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                {% elif category == 'error' or category == 'danger' %}
+                                    <svg class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                {% else %}
+                                    <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium {% if category == 'success' %}text-green-800{% elif category == 'error' or category == 'danger' %}text-red-800{% else %}text-blue-800{% endif %}">
+                                    {{ message }}
+                                </p>
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <form method="POST" enctype="multipart/form-data" class="space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Left Column - Image Upload -->
+                <div class="md:col-span-1 p-6 bg-white ">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Product Image</h3>
+                    
+                    <!-- Current Image Preview -->
+                    <div class="mb-6">
+                        <div class="aspect-w-1 aspect-h-1 rounded-lg bg-gray-100 overflow-hidden">
+                            {% if product.image_url %}
+                                <img id="current-image" src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" class="w-full h-full object-center object-cover">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <svg class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Image Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Update Image</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="image" class="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-emerald-500">
+                                        <span>Upload a new image</span>
+                                        <input id="image" name="image" type="file" class="sr-only" accept="image/*">
+                                    </label>
+                                </div>
+                                <p class="text-xs text-gray-500">PNG, JPG, GIF, WEBP up to 10MB</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Product Details -->
+                <div class="md:col-span-2 p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-6">Product Information</h3>
+                    
+                    <div class="space-y-6">
+                        <!-- Product Name -->
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">Product Name *</label>
+                            <input type="text" name="name" id="name" required value="{{ product.name }}"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                        </div>
+
+                        <!-- Description -->
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-gray-700">Description *</label>
+                            <textarea name="description" id="description" rows="4" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">{{ product.description }}</textarea>
+                        </div>
+
+                        <!-- Category and Subcategory -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="category" class="block text-sm font-medium text-gray-700">Category *</label>
+                                <select name="category" id="category" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                                    <option value="">Select a category</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if product.subcategory and product.subcategory.category_id == category.id %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label for="subcategory" class="block text-sm font-medium text-gray-700">Subcategory *</label>
+                                <select name="subcategory" id="subcategory" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                                    <option value="">Select a subcategory</option>
+                                    {% if product.subcategory %}
+                                        {% for subcategory in product.subcategory.category.subcategories %}
+                                        <option value="{{ subcategory.id }}" {% if product.subcategory.id == subcategory.id %}selected{% endif %}>
+                                            {{ subcategory.name }}
+                                        </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Price and Stock -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="price" class="block text-sm font-medium text-gray-700">Price (₹) *</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+
+                                    <input type="number" name="price" id="price" step="0.01" min="0" required value="{{ product.price }}"
+                                        class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="stock" class="block text-sm font-medium text-gray-700">Stock *</label>
+                                <input type="number" name="stock" id="stock" min="0" required value="{{ product.stock }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
+            
             <!-- Submit Buttons -->
-            <div class="pt-4 flex gap-4">
-                <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 transition">
-                    Save Changes
-                </button>
-                <a href="{{ url_for('seller_dashboard') }}" class="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition text-center">
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end space-x-4">
+                <a href="{{ url_for('seller_dashboard') }}" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
                     Cancel
                 </a>
+                <button type="submit"
+                class="py-2 px-4 border  border-emerald-600 rounded-lg shadow-sm text-sm font-medium text-emerald-600 bg-white hover:bg-emerald-700 hover:text-white hover:border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                Save Changes
+            </button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    // Show/hide sale price field based on sale checkbox
-    const onSaleCheckbox = document.getElementById('on_sale');
-    const salePriceContainer = document.getElementById('sale_price_container');
+    // Handle category change to load subcategories
+    const categorySelect = document.getElementById('category');
+    const subcategorySelect = document.getElementById('subcategory');
     
-    onSaleCheckbox.addEventListener('change', function() {
-        salePriceContainer.classList.toggle('hidden', !this.checked);
+    categorySelect.addEventListener('change', function() {
+        const categoryId = this.value;
+        
+        // Clear subcategory options
+        subcategorySelect.innerHTML = '<option value="">Select a subcategory</option>';
+        
+        if (categoryId) {
+            // Fetch subcategories for selected category
+            fetch(`/api/subcategories/${categoryId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(subcategory => {
+                        const option = document.createElement('option');
+                        option.value = subcategory.id;
+                        option.textContent = subcategory.name;
+                        subcategorySelect.appendChild(option);
+                    });
+                });
+        }
     });
-
+    
     // Preview uploaded image
     const imageInput = document.getElementById('image');
+    const currentImage = document.getElementById('current-image');
+    
     imageInput.addEventListener('change', function(e) {
         if (e.target.files && e.target.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const preview = document.createElement('img');
-                preview.src = e.target.result;
-                preview.classList.add('mt-2', 'rounded-lg', 'w-full', 'max-h-64', 'object-cover');
-                
-                const container = imageInput.closest('div');
-                const existingPreview = container.querySelector('img:not([alt="Upload"])');
-                if (existingPreview) {
-                    existingPreview.remove();
+                if (currentImage) {
+                    currentImage.src = e.target.result;
+                } else {
+                    const preview = document.createElement('img');
+                    preview.src = e.target.result;
+                    preview.id = 'current-image';
+                    preview.classList.add('w-full', 'h-full', 'object-center', 'object-cover');
+                    
+                    const container = document.querySelector('.aspect-w-1');
+                    container.innerHTML = '';
+                    container.appendChild(preview);
                 }
-                container.appendChild(preview);
             }
             reader.readAsDataURL(e.target.files[0]);
         }
