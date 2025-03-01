@@ -559,6 +559,44 @@ def edit_product(id):
     categories = Category.query.all()
     return render_template('pages/edit-product.html', product=product, categories=categories)
 
+@app.route('/seller/products/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_product(id):
+    if not current_user.is_seller:
+        flash('Access denied. Seller account required.', 'error')
+        return redirect(url_for('home'))
+    
+    product = Product.query.get_or_404(id)
+    if product.seller_id != current_user.id:
+        flash('Access denied. You can only delete your own products.', 'error')
+        return redirect(url_for('seller_dashboard'))
+    
+    # Check if product is in any orders
+    order_items = OrderItem.query.filter_by(product_id=product.id).first()
+    if order_items:
+        # Don't delete, just mark as out of stock
+        product.stock = 0
+        db.session.commit()
+        flash('Product has been marked as out of stock. Cannot delete products with order history.', 'warning')
+        return redirect(url_for('seller_dashboard'))
+    
+    # Delete product image if it exists
+    if product.image_url:
+        image_path = os.path.join(app.root_path, 'static', product.image_url.lstrip('/'))
+        if os.path.exists(image_path):
+            os.remove(image_path)
+    
+    # Remove from carts and wishlists
+    CartItem.query.filter_by(product_id=product.id).delete()
+    WishlistItem.query.filter_by(product_id=product.id).delete()
+    
+    # Delete the product
+    db.session.delete(product)
+    db.session.commit()
+    
+    flash('Product deleted successfully', 'success')
+    return redirect(url_for('seller_dashboard'))
+
 @app.route('/seller/orders/<int:id>')
 @login_required
 def order_details(id):
@@ -574,6 +612,30 @@ def order_details(id):
         return redirect(url_for('seller_dashboard'))
     
     return render_template('pages/order-details.html', order=order)
+
+@app.route('/seller/orders/<int:id>/update-status', methods=['POST'])
+@login_required
+def update_order_status(id):
+    if not current_user.is_seller:
+        flash('Access denied. Seller account required.', 'error')
+        return redirect(url_for('home'))
+    
+    order = Order.query.get_or_404(id)
+    # Check if the seller has any products in this order
+    has_access = any(item.product.seller_id == current_user.id for item in order.items)
+    if not has_access:
+        flash('Access denied. You can only update orders containing your products.', 'error')
+        return redirect(url_for('seller_dashboard'))
+    
+    new_status = request.form.get('status')
+    if new_status in ['Processing', 'Shipped', 'Delivered', 'Cancelled']:
+        order.status = new_status
+        db.session.commit()
+        flash(f'Order status updated to {new_status}', 'success')
+    else:
+        flash('Invalid status value', 'error')
+    
+    return redirect(url_for('order_details', id=id))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -636,6 +698,155 @@ def account():
                          orders=orders,
                          wishlist=wishlist,
                          cart=cart)
+
+@app.route('/account/update', methods=['POST'])
+@login_required
+def update_account():
+    # Get form data
+    name = request.form.get('name')
+    email = request.form.get('email')
+    phone = request.form.get('phone')
+    
+    # Validate email uniqueness if changed
+    if email != current_user.email:
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Email already in use by another account.', 'error')
+            return redirect(url_for('account'))
+    
+    # Update user information
+    current_user.name = name
+    current_user.email = email
+    current_user.phone = phone
+    
+    db.session.commit()
+    flash('Account information updated successfully!', 'success')
+    return redirect(url_for('account'))
+
+@app.route('/account/change-password', methods=['POST'])
+@login_required
+def change_password():
+    # Get form data
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+    
+    # Validate input
+    if not current_password or not new_password or not confirm_password:
+        flash('All fields are required', 'danger')
+        return redirect(url_for('account'))
+    
+    # Check if current password is correct
+    if not check_password_hash(current_user.password, current_password):
+        flash('Current password is incorrect', 'danger')
+        return redirect(url_for('account'))
+    
+    # Check if new passwords match
+    if new_password != confirm_password:
+        flash('New passwords do not match', 'danger')
+        return redirect(url_for('account'))
+    
+    # Update password
+    current_user.password = generate_password_hash(new_password)
+    db.session.commit()
+    
+    flash('Your password has been updated', 'success')
+    return redirect(url_for('account'))
+
+@app.route('/account/addresses')
+@login_required
+def view_addresses():
+    addresses = Address.query.filter_by(user_id=current_user.id).all()
+    return render_template('pages/addresses.html', addresses=addresses)
+
+@app.route('/account/addresses/add', methods=['GET', 'POST'])
+@login_required
+def add_address():
+    if request.method == 'POST':
+        # Get form data
+        line1 = request.form.get('line1')
+        line2 = request.form.get('line2')
+        city = request.form.get('city')
+        state = request.form.get('state')
+        country = request.form.get('country')
+        zip_code = request.form.get('zip_code')
+        
+        # Validate input
+        if not line1 or not city or not state or not country or not zip_code:
+            flash('Please fill in all required fields', 'danger')
+            return redirect(url_for('add_address'))
+        
+        # Create new address
+        address = Address(
+            user_id=current_user.id,
+            line1=line1,
+            line2=line2,
+            city=city,
+            state=state,
+            country=country,
+            zip_code=zip_code
+        )
+        
+        db.session.add(address)
+        db.session.commit()
+        
+        flash('Address added successfully', 'success')
+        return redirect(url_for('view_addresses'))
+    
+    return render_template('pages/add-address.html')
+
+@app.route('/account/addresses/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_address(id):
+    address = Address.query.get_or_404(id)
+    
+    # Check if address belongs to current user
+    if address.user_id != current_user.id:
+        flash('You do not have permission to edit this address', 'danger')
+        return redirect(url_for('view_addresses'))
+    
+    if request.method == 'POST':
+        # Get form data
+        address.line1 = request.form.get('line1')
+        address.line2 = request.form.get('line2')
+        address.city = request.form.get('city')
+        address.state = request.form.get('state')
+        address.country = request.form.get('country')
+        address.zip_code = request.form.get('zip_code')
+        
+        # Validate input
+        if not address.line1 or not address.city or not address.state or not address.country or not address.zip_code:
+            flash('Please fill in all required fields', 'danger')
+            return redirect(url_for('edit_address', id=id))
+        
+        db.session.commit()
+        
+        flash('Address updated successfully', 'success')
+        return redirect(url_for('view_addresses'))
+    
+    return render_template('pages/edit-address.html', address=address)
+
+@app.route('/account/addresses/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_address(id):
+    address = Address.query.get_or_404(id)
+    
+    # Check if address belongs to current user
+    if address.user_id != current_user.id:
+        flash('You do not have permission to delete this address', 'danger')
+        return redirect(url_for('view_addresses'))
+    
+    # Check if address is used in any orders
+    orders = Order.query.filter_by(address_id=id).first()
+    if orders:
+        flash('This address cannot be deleted as it is used in orders', 'danger')
+        return redirect(url_for('view_addresses'))
+    
+    db.session.delete(address)
+    db.session.commit()
+    
+    flash('Address deleted successfully', 'success')
+    return redirect(url_for('view_addresses'))
 
 @app.route('/become-seller', methods=['GET', 'POST'])
 @login_required

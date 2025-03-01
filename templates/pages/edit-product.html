@@ -81,24 +81,6 @@
                 </div>
             </div>
 
-            <!-- Additional Options -->
-            <div class="space-y-4">
-                <div class="flex items-center">
-                    <input type="checkbox" name="on_sale" id="on_sale" {% if product.sale_price %}checked{% endif %}
-                        class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
-                    <label for="on_sale" class="ml-2 block text-sm text-gray-900">
-                        Put on sale
-                    </label>
-                </div>
-            </div>
-
-            <!-- Sale Price (conditionally shown) -->
-            <div id="sale_price_container" class="{% if not product.sale_price %}hidden{% endif %}">
-                <label for="sale_price" class="block text-sm font-medium text-gray-700">Sale Price ($)</label>
-                <input type="number" name="sale_price" id="sale_price" step="0.01" min="0" value="{{ product.sale_price }}"
-                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-            </div>
-
             <!-- Submit Buttons -->
             <div class="pt-4 flex gap-4">
                 <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 transition">

@@ -15,18 +15,22 @@
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                     {% if order.status == 'Delivered' %}bg-green-100 text-green-800
                     {% elif order.status == 'Processing' %}bg-yellow-100 text-yellow-800
-                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                    {% elif order.status == 'Shipped' %}bg-blue-100 text-blue-800
+                    {% elif order.status == 'Cancelled' %}bg-red-100 text-red-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
                     {{ order.status }}
                 </span>
-                <select class="rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
-                    <option value="shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
-                    <option value="delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
-                    <option value="cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
-                </select>
-                <button class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">
-                    Update Status
-                </button>
+                <form action="{{ url_for('update_order_status', id=order.id) }}" method="POST" class="flex items-center space-x-2">
+                    <select name="status" class="rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
+                        <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                        <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">
+                        Update Status
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -48,10 +52,10 @@
                             <div class="ml-4 flex-1">
                                 <h3 class="text-lg font-medium text-gray-900">{{ item.product.name }}</h3>
                                 <p class="text-gray-500">Quantity: {{ item.quantity }}</p>
-                                <p class="text-gray-500">Price per unit: ${{ "%.2f"|format(item.price) }}</p>
+                                <p class="text-gray-500">Price per unit: ₹{{ "%.2f"|format(item.price) }}</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-lg font-medium text-gray-900">${{ "%.2f"|format(item.quantity * item.price) }}</p>
+                                <p class="text-lg font-medium text-gray-900">₹{{ "%.2f"|format(item.quantity * item.price) }}</p>
                             </div>
                         </div>
                     </div>
@@ -101,26 +105,26 @@
                         <div class="space-y-2">
                             <div class="flex justify-between text-sm">
                                 <p class="text-gray-600">Subtotal</p>
-                                <p class="text-gray-900">${{ "%.2f"|format(order.subtotal) }}</p>
+                                <p class="text-gray-900">₹{{ "%.2f"|format(order.subtotal) }}</p>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <p class="text-gray-600">Shipping</p>
-                                <p class="text-gray-900">${{ "%.2f"|format(order.shipping_fee) }}</p>
+                                <p class="text-gray-900">₹{{ "%.2f"|format(order.shipping_fee) }}</p>
                             </div>
                             {% if order.discount %}
                             <div class="flex justify-between text-sm">
                                 <p class="text-gray-600">Discount</p>
-                                <p class="text-red-600">-${{ "%.2f"|format(order.discount) }}</p>
+                                <p class="text-red-600">-₹{{ "%.2f"|format(order.discount) }}</p>
                             </div>
                             {% endif %}
                             <div class="flex justify-between text-sm">
                                 <p class="text-gray-600">Tax</p>
-                                <p class="text-gray-900">${{ "%.2f"|format(order.tax) }}</p>
+                                <p class="text-gray-900">₹{{ "%.2f"|format(order.tax) }}</p>
                             </div>
                             <div class="border-t pt-2 mt-2">
                                 <div class="flex justify-between">
                                     <p class="text-base font-medium text-gray-900">Total</p>
-                                    <p class="text-base font-medium text-gray-900">${{ "%.2f"|format(order.total) }}</p>
+                                    <p class="text-base font-medium text-gray-900">₹{{ "%.2f"|format(order.total) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -146,28 +150,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    // Handle status update
-    const statusSelect = document.querySelector('select');
-    const updateButton = document.querySelector('button');
-    
-    updateButton.addEventListener('click', function() {
-        const newStatus = statusSelect.value;
-        // Send AJAX request to update status
-        fetch(`/seller/orders/{{ order.id }}/status`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            }
-        });
-    });
-</script>
 {% endblock %} 
