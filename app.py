@@ -61,6 +61,13 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@app.context_processor
+def inject_cart():
+    if current_user.is_authenticated:
+        cart = Cart.query.filter_by(user_id=current_user.id).first()
+        return {'user_cart': cart}
+    return {'user_cart': None}
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
@@ -586,13 +593,15 @@ def register():
         name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
+        phone = request.form.get('phone')
+        is_seller = request.form.get('is_seller') == "on"
         
         if User.query.filter_by(email=email).first():
             flash('Email already registered', 'error')
             return redirect(url_for('register'))
         
         hashed_password = generate_password_hash(password)
-        new_user = User(name=name, email=email, password=hashed_password)
+        new_user = User(name=name, email=email, phone=phone, password=hashed_password, is_seller=is_seller)
         db.session.add(new_user)
         db.session.commit()
         
@@ -816,7 +825,8 @@ def init_db():
             {
                 'name': 'Fruits & Vegetables',
                 'description': 'Fresh produce delivered to your door',
-                'image_url': 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+                'image_url': '/static/images/categories/Fruits.avif'
+,
                 'subcategories': [
                     'Fresh Fruits',
                     'Fresh Vegetables',
@@ -830,7 +840,8 @@ def init_db():
             {
                 'name': 'Dairy & Eggs',
                 'description': 'Farm-fresh dairy products',
-                'image_url': 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+                'image_url': '/static/images/categories/Dairy.avif'
+,
                 'subcategories': [
                     'Milk',
                     'Yogurt',
@@ -844,7 +855,8 @@ def init_db():
             {
                 'name': 'Bakery',
                 'description': 'Freshly baked breads and pastries',
-                'image_url': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+                'image_url': '/static/images/categories/Bakery.avif'
+,
                 'subcategories': [
                     'Bread',
                     'Cakes & Pastries',
@@ -858,7 +870,8 @@ def init_db():
             {
                 'name': 'Meat & Seafood',
                 'description': 'Premium quality meats and seafood',
-                'image_url': 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+                'image_url': '/static/images/categories/Meat.jpeg'
+,
                 'subcategories': [
                     'Chicken',
                     'Mutton',
@@ -872,7 +885,8 @@ def init_db():
             {
                 'name': 'Pantry',
                 'description': 'Essential cooking ingredients',
-                'image_url': 'https://images.unsplash.com/photo-1584473457406-6240486418e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+                'image_url': '/static/images/categories/Pantry.avif'
+,
                 'subcategories': [
                     'Rice & Grains',
                     'Pulses & Lentils',
@@ -886,7 +900,8 @@ def init_db():
             {
                 'name': 'Beverages',
                 'description': 'Refreshing drinks and juices',
-                'image_url': 'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+                'image_url': '/static/images/categories/Beverages.avif'
+,
                 'subcategories': [
                     'Soft Drinks',
                     'Juices',

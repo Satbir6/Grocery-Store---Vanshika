@@ -15,7 +15,7 @@
                     <div class="flex items-center gap-6">
                         <!-- Product Image -->
                         <div class="w-24 h-24 flex-shrink-0">
-                            <img src="{{ item.product.image_url }}" 
+                            <img src="{{ url_for('static', filename=item.product.image_url) }}" 
                                  alt="{{ item.product.name }}" 
                                  class="w-full h-full object-cover rounded-md">
                         </div>
