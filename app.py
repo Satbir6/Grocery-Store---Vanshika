@@ -40,12 +40,12 @@ def save_product_image(file):
         new_filename = f"{name}_{random_num}_{timestamp}{ext}"
         
         # Save the file using os.path.join for proper path handling
-        filepath = os.path.join(app.root_path, 'static', 'uploads', 'products', new_filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         file.save(filepath)
         
-        # Return the URL path with forward slashes for database storage
-        return '/'.join(['static', 'uploads', 'products', new_filename]) 
+        # Return the relative path for database storage
+        return os.path.join('uploads', 'products', new_filename).replace('\\', '/')
     return None
 
 # Initialize SQLAlchemy
@@ -272,7 +272,30 @@ class Rating(db.Model):
 def home():
     # Fetch categories with their images
     categories = Category.query.all()
-    return render_template('pages/home.html', categories=categories)
+    
+    # Fetch featured products (newest products)
+    featured_products = Product.query.order_by(Product.created_at.desc()).limit(8).all()
+    
+    # Fetch top deals (products with highest ratings)
+    top_deals = Product.query.join(Rating).group_by(Product.id).order_by(
+        func.avg(Rating.rating).desc()
+    ).limit(4).all()
+    
+    # Get user's wishlist information if authenticated
+    user_wishlist_product_ids = []
+    user_wishlist_items = {}
+    
+    if current_user.is_authenticated:
+        wishlist_items = WishlistItem.query.filter_by(user_id=current_user.id).all()
+        user_wishlist_product_ids = [item.product_id for item in wishlist_items]
+        user_wishlist_items = {item.product_id: item.id for item in wishlist_items}
+    
+    return render_template('pages/home.html', 
+                          categories=categories,
+                          featured_products=featured_products,
+                          top_deals=top_deals,
+                          user_wishlist_product_ids=user_wishlist_product_ids,
+                          user_wishlist_items=user_wishlist_items)
 
 @app.route('/categories')
 def categories():
@@ -677,6 +700,111 @@ def product_details(id):
                          product=product,
                          user_rating=user_rating,
                          ratings=ratings)
+
+@app.route('/wishlist')
+@login_required
+def wishlist():
+    # Get user's wishlist items
+    wishlist_items = WishlistItem.query.filter_by(user_id=current_user.id).all()
+    
+    # Get recommended products (products not in wishlist)
+    recommended_products = []
+    if wishlist_items:
+        # Get subcategories of wishlist items
+        wishlist_subcategories = [item.product.sub_category_id for item in wishlist_items]
+        wishlist_product_ids = [item.product_id for item in wishlist_items]
+        
+        # Get products from same subcategories but not in wishlist
+        recommended_products = Product.query.filter(
+            Product.sub_category_id.in_(wishlist_subcategories),
+            ~Product.id.in_(wishlist_product_ids)
+        ).order_by(func.random()).limit(4).all()
+    
+    # If not enough recommended products, get top-rated products
+    if len(recommended_products) < 4:
+        needed = 4 - len(recommended_products)
+        existing_ids = [p.id for p in recommended_products]
+        if wishlist_items:
+            existing_ids.extend([item.product_id for item in wishlist_items])
+        
+        top_rated = Product.query.filter(
+            ~Product.id.in_(existing_ids)
+        ).order_by(func.random()).limit(needed).all()
+        
+        recommended_products.extend(top_rated)
+    
+    # Prepare wishlist data for AJAX functionality
+    user_wishlist_product_ids = [item.product_id for item in wishlist_items]
+    user_wishlist_items = {item.product_id: item.id for item in wishlist_items}
+    
+    return render_template('pages/wishlist.html', 
+                          wishlist_items=wishlist_items,
+                          recommended_products=recommended_products,
+                          user_wishlist_product_ids=user_wishlist_product_ids,
+                          user_wishlist_items=user_wishlist_items)
+
+@app.route('/wishlist/add/<int:product_id>', methods=['POST'])
+@login_required
+def add_to_wishlist(product_id):
+    # Check if product already in wishlist
+    existing_item = WishlistItem.query.filter_by(
+        user_id=current_user.id,
+        product_id=product_id
+    ).first()
+    
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    if existing_item:
+        message = 'Product already in your wishlist'
+        if is_ajax:
+            return jsonify({
+                'success': True,
+                'message': message,
+                'wishlist_item_id': existing_item.id
+            })
+        flash(message, 'info')
+    else:
+        wishlist_item = WishlistItem(user_id=current_user.id, product_id=product_id)
+        db.session.add(wishlist_item)
+        db.session.commit()
+        message = 'Product added to wishlist'
+        if is_ajax:
+            return jsonify({
+                'success': True,
+                'message': message,
+                'wishlist_item_id': wishlist_item.id
+            })
+        flash(message, 'success')
+    
+    # Redirect back for non-AJAX requests
+    next_page = request.referrer or url_for('products')
+    return redirect(next_page)
+
+@app.route('/wishlist/remove/<int:item_id>', methods=['POST'])
+@login_required
+def remove_from_wishlist(item_id):
+    wishlist_item = WishlistItem.query.get_or_404(item_id)
+    
+    # Verify wishlist item belongs to user
+    if wishlist_item.user_id != current_user.id:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                'success': False,
+                'message': 'Unauthorized'
+            }), 403
+        abort(403)
+    
+    db.session.delete(wishlist_item)
+    db.session.commit()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            'success': True,
+            'message': 'Item removed from wishlist'
+        })
+    
+    flash('Item removed from wishlist', 'success')
+    return redirect(url_for('wishlist'))
 
 # Initialize database with categories
 def init_db():
