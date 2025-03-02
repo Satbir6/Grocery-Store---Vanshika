@@ -107,6 +107,7 @@
                             {% endif %}
                         </div>
                         <div class="flex space-x-2">
+                            {% if product.stock > 0 %}
                             <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="inline">
                                 <input type="hidden" name="quantity" value="1">
                                 <button type="submit" class="p-2 {% if product.stock <= 0 %}text-gray-400 cursor-not-allowed{% else %}text-emerald-600 hover:text-white hover:bg-emerald-600{% endif %} rounded-full border-2 border-emerald-600 transition-colors duration-300" {% if product.stock <= 0 %}disabled{% endif %}>
@@ -115,6 +116,7 @@
                                     </svg>
                                 </button>
                             </form>
+                            {% endif %}
                             {% if current_user.is_authenticated %}
                             <button type="button" 
                                 class="wishlist-btn p-2 rounded-full border-2 transition-colors duration-300 {% if product.id in user_wishlist_product_ids %}border-red-500 text-red-500 hover:bg-red-500 hover:text-white{% else %}border-gray-300 text-gray-400 hover:border-red-500 hover:text-red-500{% endif %}"
@@ -232,6 +234,7 @@
                             {% endif %}
                         </div>
                         <div class="flex space-x-2">
+                            {% if product.stock > 0 %}
                             <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="inline">
                                 <input type="hidden" name="quantity" value="1">
                                 <button type="submit" class="p-2 {% if product.stock <= 0 %}text-gray-400 cursor-not-allowed{% else %}text-emerald-600 hover:text-white hover:bg-emerald-600{% endif %} rounded-full border-2 border-emerald-600 transition-colors duration-300" {% if product.stock <= 0 %}disabled{% endif %}>
@@ -240,6 +243,7 @@
                                     </svg>
                                 </button>
                             </form>
+                            {% endif %}
                             {% if current_user.is_authenticated %}
                             <button type="button" 
                                 class="wishlist-btn p-2 rounded-full border-2 transition-colors duration-300 {% if product.id in user_wishlist_product_ids %}border-red-500 text-red-500 hover:bg-red-500 hover:text-white{% else %}border-gray-300 text-gray-400 hover:border-red-500 hover:text-red-500{% endif %}"

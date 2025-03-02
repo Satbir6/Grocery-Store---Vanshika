@@ -411,13 +411,13 @@
                                     {{ seller_items|length }} item(s)
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {% set seller_total = 0 %}
+                                    {% set seller_total = namespace(value=0) %}
                                     {% for item in order.order_items %}
                                         {% if item.product.seller_id == current_user.id %}
-                                            {% set seller_total = seller_total + (item.price * item.quantity) %}
+                                            {% set seller_total.value = seller_total.value + (item.price * item.quantity) %}
                                         {% endif %}
                                     {% endfor %}
-                                    ₹{{ "%.2f"|format(seller_total) }}
+                                    ₹{{ "%.2f"|format(seller_total.value) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
@@ -559,13 +559,13 @@
                                 {{ seller_items|length }} item(s)
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {% set seller_total = 0 %}
+                                {% set seller_total = namespace(value=0) %}
                                 {% for item in order.order_items %}
                                     {% if item.product.seller_id == current_user.id %}
-                                        {% set seller_total = seller_total + (item.price * item.quantity) %}
+                                        {% set seller_total.value = seller_total.value + (item.price * item.quantity) %}
                                     {% endif %}
                                 {% endfor %}
-                                ₹{{ "%.2f"|format(seller_total) }}
+                                ₹{{ "%.2f"|format(seller_total.value) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 

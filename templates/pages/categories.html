@@ -3,130 +3,64 @@
 {% block title %}Categories - Fresh Mart{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<div class="bg-emerald-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">Categories</h1>
-        <p class="text-lg text-gray-600">Browse our wide selection of fresh groceries by category</p>
+<!-- Hero Header -->
+<div class="relative bg-emerald-50 overflow-hidden">
+    <div class="absolute inset-0">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"30\" height=\"30\" viewBox=\"0 0 30 30\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z\" fill=\"rgba(16,185,129,0.07)\"%3E%3C/path%3E%3C/svg%3E')] opacity-50"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+        <div class="opacity-0 animate-fade-in-up" style="animation: fadeInUp 0.8s ease-out forwards;">
+            <span class="block text-emerald-600 font-semibold text-sm uppercase tracking-wider mb-2">Explore Our Selection</span>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4">Shop by Categories</h1>
+            <p class="text-xl text-gray-600 max-w-3xl">Browse our wide selection of fresh groceries, organized into convenient categories for your shopping pleasure.</p>
+        </div>
     </div>
 </div>
 
-<!-- Categories Grid -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<!-- Main Categories Grid -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Fruits & Vegetables -->
-        <div class="group relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
-            <img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                 alt="Fruits & Vegetables" 
-                 class="w-full h-72 object-cover group-hover:scale-105 transition duration-300">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 p-6">
-                <h3 class="text-2xl font-semibold text-white mb-2">Fruits & Vegetables</h3>
-                <p class="text-gray-300 mb-4">Fresh produce delivered to your door</p>
-                <a href="{{ url_for('products', category=1) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
-                    Browse Products <span class="ml-2">→</span>
-                </a>
+        {% for category in [
+            {'id': 1, 'name': 'Fruits & Vegetables', 'description': 'Fresh produce delivered to your door', 'image': '/static/images/categories/Fruits.avif'},
+            {'id': 2, 'name': 'Dairy & Eggs', 'description': 'Farm-fresh dairy products', 'image': '/static/images/categories/Dairy.avif'},
+            {'id': 3, 'name': 'Bakery', 'description': 'Freshly baked breads and pastries', 'image': '/static/images/categories/Bakery.avif'},
+            {'id': 4, 'name': 'Meat & Seafood', 'description': 'Premium quality meats and seafood', 'image': '/static/images/categories/Meat.jpeg'},
+            {'id': 5, 'name': 'Pantry', 'description': 'Essential cooking ingredients', 'image': '/static/images/categories/Pantry.avif'},
+            {'id': 6, 'name': 'Beverages', 'description': 'Refreshing drinks and juices', 'image': '/static/images/categories/Beverages.avif'}
+        ] %}
+        <a href="{{ url_for('products', category=category.id) }}" class="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-emerald-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+            <img src="{{ category.image }}" 
+                 alt="{{ category.name }}" 
+                 class="w-full h-80 object-cover transform transition-transform duration-500 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/50 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-8">
+                <div class="transform transition-transform duration-300 group-hover:translate-y-[-8px]">
+                    <h3 class="text-2xl font-bold text-white mb-3">{{ category.name }}</h3>
+                    <p class="text-gray-300 mb-4 opacity-90 group-hover:text-white transition-colors duration-300">{{ category.description }}</p>
+                    <span class="inline-flex items-center text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300">
+                        Browse Products 
+                        <svg class="ml-2 w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                </div>
             </div>
-        </div>
-
-        <!-- Dairy & Eggs -->
-        <div class="group relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
-            <img src="https://images.unsplash.com/photo-1628088062854-d1870b4553da?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                 alt="Dairy & Eggs" 
-                 class="w-full h-72 object-cover group-hover:scale-105 transition duration-300">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 p-6">
-                <h3 class="text-2xl font-semibold text-white mb-2">Dairy & Eggs</h3>
-                <p class="text-gray-300 mb-4">Farm-fresh dairy products</p>
-                <a href="{{ url_for('products', category=2) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
-                    Browse Products <span class="ml-2">→</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Bakery -->
-        <div class="group relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
-            <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                 alt="Bakery" 
-                 class="w-full h-72 object-cover group-hover:scale-105 transition duration-300">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 p-6">
-                <h3 class="text-2xl font-semibold text-white mb-2">Bakery</h3>
-                <p class="text-gray-300 mb-4">Freshly baked breads and pastries</p>
-                <a href="{{ url_for('products', category=3) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
-                    Browse Products <span class="ml-2">→</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Meat & Seafood -->
-        <div class="group relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
-            <img src="https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                 alt="Meat & Seafood" 
-                 class="w-full h-72 object-cover group-hover:scale-105 transition duration-300">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 p-6">
-                <h3 class="text-2xl font-semibold text-white mb-2">Meat & Seafood</h3>
-                <p class="text-gray-300 mb-4">Premium quality meats and seafood</p>
-                <a href="{{ url_for('products', category=4) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
-                    Browse Products <span class="ml-2">→</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Pantry -->
-        <div class="group relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
-            <img src="https://images.unsplash.com/photo-1584473457406-6240486418e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                 alt="Pantry" 
-                 class="w-full h-72 object-cover group-hover:scale-105 transition duration-300">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 p-6">
-                <h3 class="text-2xl font-semibold text-white mb-2">Pantry</h3>
-                <p class="text-gray-300 mb-4">Essential cooking ingredients</p>
-                <a href="{{ url_for('products', category=5) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
-                    Browse Products <span class="ml-2">→</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Beverages -->
-        <div class="group relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300">
-            <img src="https://images.unsplash.com/photo-1581006852262-e4307cf6283a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                 alt="Beverages" 
-                 class="w-full h-72 object-cover group-hover:scale-105 transition duration-300">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 p-6">
-                <h3 class="text-2xl font-semibold text-white mb-2">Beverages</h3>
-                <p class="text-gray-300 mb-4">Refreshing drinks and juices</p>
-                <a href="{{ url_for('products', category=6) }}" class="inline-flex items-center text-emerald-300 hover:text-emerald-400 transition">
-                    Browse Products <span class="ml-2">→</span>
-                </a>
-            </div>
-        </div>
+        </a>
+        {% endfor %}
     </div>
 </div>
 
-<!-- Popular Subcategories -->
-<div class="bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8">Popular Subcategories</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {% for subcategory in [
-                'Organic Fruits',
-                'Fresh Vegetables',
-                'Milk & Yogurt',
-                'Cheese',
-                'Fresh Bread',
-                'Pastries',
-                'Fresh Fish',
-                'Premium Cuts'
-            ] %}
-            <a href="{{ url_for('products', subcategory=loop.index) }}" 
-               class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition duration-300">
-                <h3 class="text-gray-900 font-medium">{{ subcategory }}</h3>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-</div>
+<style>
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
 {% endblock %} 
