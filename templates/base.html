@@ -73,9 +73,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         {% if user_cart and user_cart.items %}
-                        <span class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform bg-emerald-500 rounded-full transition-transform duration-200 hover:scale-110">{{ user_cart.items|length }}</span>
+                        <span class="cart-count absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform bg-emerald-500 rounded-full transition-transform duration-200 hover:scale-110">{{ user_cart.items|length }}</span>
                         {% else %}
-                        <span class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform bg-emerald-500 rounded-full transition-transform duration-200 hover:scale-110">0</span>
+                        <span class="cart-count absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform bg-emerald-500 rounded-full transition-transform duration-200 hover:scale-110">0</span>
                         {% endif %}
                     </a>
 
@@ -166,5 +166,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
     <script src="{{ url_for('static', filename='js/wishlist.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/product-actions.js') }}"></script>
 </body>
 </html>

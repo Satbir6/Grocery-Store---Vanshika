@@ -12,9 +12,9 @@
         </div>
 
         {% if wishlist_items %}
-        <div class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div id="wishlist-grid" class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {% for item in wishlist_items %}
-            <div class="group relative bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg">
+            <div class="group relative bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg wishlist-item" data-product-id="{{ item.product.id }}">
                 <!-- Product Image -->
                 <div class="w-full h-60 bg-gray-200 aspect-w-1 aspect-h-1 overflow-hidden">
                     {% if item.product.image_url %}
@@ -69,26 +69,23 @@
                     
                     <!-- Actions -->
                     <div class="mt-4 flex space-x-2">
-                        <form action="{{ url_for('add_to_cart', product_id=item.product.id) }}" method="POST" class="inline">
-                            <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-emerald-700 text-sm font-medium rounded-md shadow-md 
-                                       text-emerald-700 bg-white hover:bg-emerald-600 hover:text-white focus:outline-none focus:ring-2 
-                                       focus:ring-offset-2 focus:ring-emerald-500 
-                                       disabled:bg-gray-300 disabled:border-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed" {% if
-                                item.product.stock <=0 %}disabled{% endif %}>
-                                <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
-                                    </path>
-                                </svg>
-                                Add to Cart
-                            </button>
-
-                            
-                        </form>
+                        <button type="button" 
+                            class="add-to-cart-btn inline-flex items-center px-4 py-2 border border-emerald-700 text-sm font-medium rounded-md shadow-md 
+                                text-emerald-700 bg-white hover:bg-emerald-600 hover:text-white focus:outline-none focus:ring-2 
+                                focus:ring-offset-2 focus:ring-emerald-500 
+                                disabled:bg-gray-300 disabled:border-gray-400 disabled:text-gray-600 disabled:cursor-not-allowed"
+                            data-product-id="{{ item.product.id }}"
+                            {% if item.product.stock <= 0 %}disabled{% endif %}>
+                            <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
+                                </path>
+                            </svg>
+                            Add to Cart
+                        </button>
                         
                         <button type="button" 
-                            class="wishlist-btn inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                            class="toggle-wishlist-btn inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
                             data-product-id="{{ item.product.id }}"
                             data-in-wishlist="true"
                             data-wishlist-item-id="{{ item.id }}">
@@ -160,20 +157,19 @@
                         <div class="mt-2 flex justify-between items-center">
                             <p class="text-xl font-bold text-gray-900">₹{{ "%.2f"|format(product.price) }}</p>
                             <div class="flex space-x-2">
-                                <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="inline">
-                                    <input type="hidden" name="quantity" value="1">
-                                    <button type="submit" class="p-2 text-emerald-600 hover:text-emerald-700 rounded-full hover:bg-emerald-50">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                        </svg>
-                                    </button>
-                                </form>
                                 <button type="button" 
-                                    class="wishlist-btn p-2 {% if product.id in user_wishlist_product_ids %}text-red-500 hover:text-red-600{% else %}text-gray-400 hover:text-red-500{% endif %} rounded-full hover:bg-gray-50"
+                                    class="add-to-cart-btn p-2 text-emerald-600 hover:text-emerald-700 rounded-full hover:bg-emerald-50"
+                                    data-product-id="{{ product.id }}">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                </button>
+                                <button type="button" 
+                                    class="toggle-wishlist-btn p-2 {% if product.id in user_wishlist_product_ids %}text-red-500 hover:text-red-600{% else %}text-gray-400 hover:text-red-500{% endif %} rounded-full hover:bg-gray-50"
                                     data-product-id="{{ product.id }}"
                                     data-in-wishlist="{% if product.id in user_wishlist_product_ids %}true{% else %}false{% endif %}"
                                     {% if product.id in user_wishlist_product_ids %}data-wishlist-item-id="{{ user_wishlist_items[product.id] }}"{% endif %}>
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6" fill="{% if product.id in user_wishlist_product_ids %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                     </svg>
                                 </button>

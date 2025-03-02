@@ -394,25 +394,46 @@ def cart():
 @login_required
 def add_to_cart(product_id):
     quantity = request.form.get('quantity', 1, type=int)
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
-    # Get or create cart
-    cart = Cart.query.filter_by(user_id=current_user.id).first()
-    if not cart:
-        cart = Cart(user_id=current_user.id)
-        db.session.add(cart)
+    try:
+        # Get or create cart
+        cart = Cart.query.filter_by(user_id=current_user.id).first()
+        if not cart:
+            cart = Cart(user_id=current_user.id)
+            db.session.add(cart)
+            db.session.commit()
+        
+        # Check if product already in cart
+        cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product_id).first()
+        if cart_item:
+            cart_item.quantity += quantity
+        else:
+            cart_item = CartItem(cart_id=cart.id, product_id=product_id, quantity=quantity)
+            db.session.add(cart_item)
+        
         db.session.commit()
-    
-    # Check if product already in cart
-    cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=product_id).first()
-    if cart_item:
-        cart_item.quantity += quantity
-    else:
-        cart_item = CartItem(cart_id=cart.id, product_id=product_id, quantity=quantity)
-        db.session.add(cart_item)
-    
-    db.session.commit()
-    flash('Product added to cart successfully!', 'success')
-    return redirect(url_for('cart'))
+        
+        if is_ajax:
+            return jsonify({
+                'success': True,
+                'message': 'Product added to cart successfully!',
+                'cart_count': len(cart.items)
+            })
+        
+        flash('Product added to cart successfully!', 'success')
+        return redirect(url_for('cart'))
+        
+    except Exception as e:
+        db.session.rollback()
+        if is_ajax:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to add product to cart.'
+            }), 400
+        
+        flash('Failed to add product to cart.', 'error')
+        return redirect(url_for('cart'))
 
 @app.route('/cart/update/<int:item_id>', methods=['POST'])
 @login_required
@@ -1389,6 +1410,28 @@ def cancel_order(id):
     db.session.commit()
     flash('Order cancelled successfully.', 'success')
     return redirect(url_for('user_order_details', id=order.id))
+
+@app.route('/search')
+def search():
+    query = request.args.get('q', '')
+    if not query:
+        return redirect(url_for('products'))
+    
+    # Search in product names and descriptions
+    products = Product.query.filter(
+        db.or_(
+            Product.name.ilike(f'%{query}%'),
+            Product.description.ilike(f'%{query}%')
+        )
+    ).all()
+    
+    # Get all categories for the filter sidebar
+    categories = Category.query.all()
+    
+    return render_template('pages/search.html', 
+                         products=products, 
+                         categories=categories,
+                         query=query)
 
 # Initialize database with categories
 def init_db():
