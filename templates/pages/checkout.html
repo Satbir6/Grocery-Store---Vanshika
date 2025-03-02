@@ -5,6 +5,15 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mt-4 rounded-md p-4 {% if category == 'error' %}bg-red-50 text-red-800{% else %}bg-green-50 text-green-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
         <!-- Checkout Form -->
         <div>
             <h1 class="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
@@ -66,53 +75,64 @@
                     </div>
                     {% endif %}
                     
-                    <!-- New Address Form (initially hidden if addresses exist) -->
-                    <div id="new-address-form" class="space-y-4 {% if addresses %}hidden{% endif %}">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                                <input type="text" name="first_name" value="{{ current_user.name.split(' ')[0] if ' ' in current_user.name else current_user.name }}" 
-                                    class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                                <input type="text" name="last_name" value="{{ ' '.join(current_user.name.split(' ')[1:]) if ' ' in current_user.name else '' }}" 
-                                    class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                            </div>
+                    <!-- New Address Form -->
+                    <div id="new-address-form" class="space-y-4 {% if addresses and not request.form.get('address_id') == 'new' %}hidden{% endif %}">
+                        {% if not addresses %}
+                        <div class="mb-6 bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                            <p class="text-emerald-700 text-sm">Please enter your shipping address below. You can save it for future orders.</p>
+                        </div>
+                        {% endif %}
+                        {% if not addresses %}
+                        <input type="hidden" name="address_id" value="new">
+                        {% endif %}
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 1 <span class="text-red-500">*</span></label>
+                            <input type="text" name="line1" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                                   placeholder="Street address, P.O. box, company name" 
+                                   {% if not addresses or request.form.get('address_id') == 'new' %}required{% endif %}>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 1</label>
-                            <input type="text" name="line1" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 2 (Optional)</label>
-                            <input type="text" name="line2" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                            <input type="text" name="line2" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                                   placeholder="Apartment, suite, unit, building, floor, etc.">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
-                                <input type="text" name="city" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">City <span class="text-red-500">*</span></label>
+                                <input type="text" name="city" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" 
+                                       {% if not addresses or request.form.get('address_id') == 'new' %}required{% endif %}>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
-                                <input type="text" name="state" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">State <span class="text-red-500">*</span></label>
+                                <input type="text" name="state" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" 
+                                       {% if not addresses or request.form.get('address_id') == 'new' %}required{% endif %}>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                                <input type="text" name="country" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Country <span class="text-red-500">*</span></label>
+                                <input type="text" name="country" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" 
+                                       {% if not addresses or request.form.get('address_id') == 'new' %}required{% endif %}>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
-                                <input type="text" name="zip_code" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code <span class="text-red-500">*</span></label>
+                                <input type="text" name="zip_code" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" 
+                                       pattern="[0-9]*" title="Please enter a valid ZIP code"
+                                       {% if not addresses or request.form.get('address_id') == 'new' %}required{% endif %}>
                             </div>
                         </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="save_address" name="save_address" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
-                            <label for="save_address" class="ml-2 block text-sm text-gray-900">
-                                Save this address for future orders
-                            </label>
+                        <div class="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" id="save_address" name="save_address" checked
+                                           class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+                                </div>
+                                <div class="ml-3">
+                                    <label for="save_address" class="font-medium text-emerald-700">Save this address for future orders</label>
+                                    <p class="text-emerald-600 text-sm">This address will be saved to your account for faster checkout next time.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -136,26 +156,30 @@
 
                         <div class="space-y-4 mt-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                                <input type="text" name="card_number" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="1234 5678 9012 3456">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Card Number <span class="text-red-500">*</span></label>
+                                <input type="text" name="card_number" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" 
+                                       placeholder="1234 5678 9012 3456" required pattern="[0-9\s]{13,19}" maxlength="19">
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                    <input type="text" name="expiry" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="MM/YY">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date <span class="text-red-500">*</span></label>
+                                    <input type="text" name="expiry" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" 
+                                           placeholder="MM/YY"  maxlength="5">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                    <input type="text" name="cvv" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="123">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">CVV <span class="text-red-500">*</span></label>
+                                    <input type="text" name="cvv" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" 
+                                           placeholder="123" required pattern="[0-9]{3,4}" maxlength="4">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Mobile-only Place Order Button (visible on small screens) -->
-                <div class="mt-8 lg:hidden">
-                    <button type="submit" class="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center">
+
+                <!-- Desktop Place Order Button -->
+                <div class="mt-6">
+                    <button type="submit" 
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
                         <span class="mr-2">Place Order</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -217,14 +241,6 @@
                     </div>
                 </div>
 
-                <!-- Place Order Button (desktop) -->
-                <button type="submit" form="checkout-form"
-                class="w-full flex justify-center py-2.5 px-4 border mt-4 border-emerald-600 rounded-lg shadow-sm text-sm font-medium text-emerald-600 bg-white hover:bg-emerald-700 hover:text-white hover:border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
-                <span class="mr-2">Place Order</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </button>
                 <!-- Security Notice -->
                 <p class="mt-4 text-sm text-gray-500 text-center">
                     <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,27 +253,68 @@
     </div>
 </div>
 
-<!-- JavaScript for address selection -->
+<!-- JavaScript for address selection and form validation -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const addressRadios = document.querySelectorAll('input[name="address_id"]');
         const newAddressForm = document.getElementById('new-address-form');
-        
-        // Function to toggle new address form visibility
+        const checkoutForm = document.getElementById('checkout-form');
+        const hasAddresses = {{ 'true' if addresses else 'false' }};
+        const addressFields = ['line1', 'city', 'state', 'country', 'zip_code'];
+
+        // Function to toggle new address form visibility and required fields
         function toggleNewAddressForm() {
-            const selectedValue = document.querySelector('input[name="address_id"]:checked')?.value;
-            if (selectedValue === 'new') {
-                newAddressForm.classList.remove('hidden');
+            if (hasAddresses) {
+                const selectedValue = document.querySelector('input[name="address_id"]:checked')?.value;
+                const isNewAddress = selectedValue === 'new';
+                newAddressForm.classList.toggle('hidden', !isNewAddress);
+                
+                // Toggle required attribute on address fields
+                addressFields.forEach(field => {
+                    const input = document.querySelector(`input[name="${field}"]`);
+                    if (input) {
+                        if (isNewAddress) {
+                            input.setAttribute('required', '');
+                        } else {
+                            input.removeAttribute('required');
+                        }
+                    }
+                });
             } else {
-                newAddressForm.classList.add('hidden');
+                newAddressForm.classList.remove('hidden');
+                // Make fields required for new users without addresses
+                addressFields.forEach(field => {
+                    const input = document.querySelector(`input[name="${field}"]`);
+                    if (input) {
+                        input.setAttribute('required', '');
+                    }
+                });
             }
         }
-        
+
         // Add event listeners to all address radio buttons
         addressRadios.forEach(radio => {
             radio.addEventListener('change', toggleNewAddressForm);
         });
-        
+
+        // Format card number input
+        const cardInput = document.querySelector('input[name="card_number"]');
+        cardInput?.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(.{4})/g, '$1 ').trim();
+            e.target.value = value;
+        });
+
+        // Format expiry date input
+        const expiryInput = document.querySelector('input[name="expiry"]');
+        expiryInput?.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.slice(0,2) + '/' + value.slice(2);
+            }
+            e.target.value = value;
+        });
+
         // Initial check
         toggleNewAddressForm();
     });

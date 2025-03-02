@@ -3,38 +3,53 @@
 {% block title %}Fresh Mart - Your Online Grocery Store{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="relative bg-gray-900">
-    <!-- Background Image -->
-    <div class="absolute inset-0">
+<!-- Hero Section with Parallax Effect -->
+<div class="relative min-h-[80vh] bg-gray-900 overflow-hidden">
+    <!-- Background Image with Parallax -->
+    <div class="absolute inset-0 transform transition-transform duration-500 hover:scale-105">
         <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" 
             alt="Fresh produce" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/70 to-transparent"></div>
     </div>
 
     <!-- Content -->
-    <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">Fresh Groceries Delivered</h1>
-        <p class="mt-6 text-xl text-gray-300 max-w-3xl">Get fresh, high-quality groceries delivered right to your doorstep. Shop from our wide selection of fruits, vegetables, dairy, and more.</p>
-        <div class="mt-10">
-            <a href="{{ url_for('products') }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700">
-                Shop Now
-                <svg class="ml-3 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                </svg>
-            </a>
+    <div class="relative max-w-7xl mx-auto py-32 px-4 sm:py-40 sm:px-6 lg:px-8">
+        <div class="opacity-0 animate-fade-in-up" style="animation: fadeInUp 1s ease-out forwards;">
+            <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white">
+                <span class="block">Fresh Groceries</span>
+                <span class="block text-emerald-400 mt-2">Delivered Daily</span>
+            </h1>
+            <p class="mt-6 text-xl md:text-2xl text-gray-300 max-w-3xl leading-relaxed">
+                Get fresh, high-quality groceries delivered right to your doorstep. Shop from our wide selection of fruits, vegetables, dairy, and more.
+            </p>
+            <div class="mt-10 flex items-center space-x-4">
+                <a href="{{ url_for('products') }}" class="group inline-flex items-center px-8 py-4 border-2 border-emerald-500 text-lg font-medium rounded-full text-white bg-emerald-500 hover:bg-emerald-600 hover:border-emerald-600 transition-all duration-300 transform hover:scale-105">
+                    Shop Now
+                    <svg class="ml-3 -mr-1 h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+                <a href="{{ url_for('categories') }}" class="inline-flex items-center px-8 py-4 border-2 border-white text-lg font-medium rounded-full text-white hover:bg-white hover:text-gray-900 transition-all duration-300 transform hover:scale-105">
+                    Browse Categories
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Top Deals Section -->
-<div class="bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="text-3xl font-extrabold text-gray-900">Top Deals</h2>
-            <a href="{{ url_for('products') }}" class="text-emerald-600 hover:text-emerald-700 font-medium flex items-center">
+<div class="bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="flex items-center justify-between mb-12">
+            <div>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 flex items-center">
+                    Top Deals
+
+                </h2>
+            </div>
+            <a href="{{ url_for('products') }}" class="group inline-flex items-center text-emerald-600 hover:text-emerald-700 font-medium">
                 View All
-                <svg class="ml-1 w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <svg class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
             </a>
@@ -42,11 +57,11 @@
         
         <div class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4">
             {% for product in top_deals %}
-            <div class="group relative bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg">
-                <div class="w-full h-60 bg-gray-200 aspect-w-1 aspect-h-1 overflow-hidden">
+            <div class="group relative bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
+                <div class="relative w-full h-60 bg-gray-200 aspect-w-1 aspect-h-1 overflow-hidden">
                     {% if product.image_url %}
                     <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" 
-                        class="w-full h-full object-center object-cover group-hover:opacity-75">
+                        class="w-full h-full object-center object-cover transform group-hover:scale-110 transition-transform duration-500">
                     {% else %}
                     <div class="w-full h-full flex items-center justify-center bg-gray-100">
                         <svg class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,147 +69,39 @@
                         </svg>
                     </div>
                     {% endif %}
-                    
-
-                </div>
-                <div class="p-4">
-                    <h3 class="text-lg font-medium text-gray-900">
-                        <a href="{{ url_for('product_details', id=product.id) }}">
-                            {{ product.name }}
-                        </a>
-                    </h3>
-                    <div class="mt-1 flex items-center">
-                        <div class="flex items-center">
-                            {% for i in range(5) %}
-                                {% if i < product.avg_rating|int %}
-                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                </svg>
-                                {% else %}
-                                <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                </svg>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        <p class="ml-1 text-sm text-gray-500">({{ product.total_ratings }})</p>
-                    </div>
-                    <div class="mt-2 flex justify-between items-center">
-                        <div class="flex items-center">
-                            <p class="text-xl font-bold text-gray-900">₹{{ "%.2f"|format(product.price) }}</p>
-                            {% if product.stock <= 0 %}
-                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                Out of Stock
-                            </span>
-                            {% endif %}
-                        </div>
-                        <div>
-                        <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="inline">
-                            <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="p-2 {% if product.stock <= 0 %}text-gray-400 cursor-not-allowed{% else %}text-emerald-600 hover:text-emerald-700{% endif %} rounded-full hover:bg-emerald-50" {% if product.stock <= 0 %}disabled{% endif %}>
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                </svg>
-                            </button>
-                        </form>
-                        {% if current_user.is_authenticated %}
-                        <button type="button" 
-                            class="wishlist-btn p-2 {% if product.id in user_wishlist_product_ids %}text-red-500 hover:text-red-600{% else %}text-gray-400 hover:text-red-500{% endif %} rounded-full hover:bg-gray-50"
-                            data-product-id="{{ product.id }}"
-                            data-in-wishlist="{% if product.id in user_wishlist_product_ids %}true{% else %}false{% endif %}"
-                            {% if product.id in user_wishlist_product_ids %}data-wishlist-item-id="{{ user_wishlist_items[product.id] }}"{% endif %}>
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                            </svg>
-                        </button>
-                    </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-
-<!-- Categories Section -->
-<div class="bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 class="text-3xl font-extrabold text-gray-900 text-center mb-12">Shop by Category</h2>
-        <div class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
-            {% for category in categories %}
-            <a href="{{ url_for('products', category=category.id) }}" class="group">
-                <div class="relative">
-                    <div class="w-full h-80 bg-gray-200 rounded-lg overflow-hidden">
-                        <img src="{{ category.image_url }}" alt="{{ category.name }}" 
-                            class="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity duration-300">
-                    </div>
-                    <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent">
-                        <h3 class="text-xl font-bold text-white">{{ category.name }}</h3>
-                        <p class="mt-1 text-sm text-gray-300">{{ category.description }}</p>
-                    </div>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-
-<!-- Featured Products -->
-<div class="bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="text-3xl font-extrabold text-gray-900">Featured Products</h2>
-            <a href="{{ url_for('products') }}" class="text-emerald-600 hover:text-emerald-700 font-medium flex items-center">
-                View All
-                <svg class="ml-1 w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                </svg>
-            </a>
-        </div>
-        
-        <div class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {% for product in featured_products %}
-            <div class="group relative bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg">
-                <div class="w-full h-60 bg-gray-200 aspect-w-1 aspect-h-1 overflow-hidden">
-                    {% if product.image_url %}
-                    <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" 
-                        class="w-full h-full object-center object-cover group-hover:opacity-75">
-                    {% else %}
-                    <div class="w-full h-full flex items-center justify-center bg-gray-100">
-                        <svg class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </div>
+                    {% if product.stock <= 5 and product.stock > 0 %}
+                    <span class="absolute top-2 left-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        Only {{ product.stock }} left
+                    </span>
                     {% endif %}
                 </div>
-                <div class="p-4">
-                    <h3 class="text-lg font-medium text-gray-900">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 group-hover:text-emerald-600 transition-colors duration-300">
                         <a href="{{ url_for('product_details', id=product.id) }}">
                             {{ product.name }}
                         </a>
                     </h3>
-                    <div class="mt-1 flex items-center">
+                    <div class="mt-2 flex items-center">
                         <div class="flex items-center">
                             {% for i in range(5) %}
                                 {% if i < product.avg_rating|int %}
-                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                                 </svg>
                                 {% else %}
-                                <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                                 </svg>
                                 {% endif %}
                             {% endfor %}
                         </div>
-                        <p class="ml-1 text-sm text-gray-500">({{ product.total_ratings }})</p>
+                        <p class="ml-2 text-sm text-gray-500">({{ product.total_ratings }})</p>
                     </div>
-                    <div class="mt-2 flex justify-between items-center">
-                        <div class="flex items-center">
-                            <p class="text-xl font-bold text-gray-900">₹{{ "%.2f"|format(product.price) }}</p>
+                    <div class="mt-4 flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <p class="text-2xl font-bold text-gray-900">₹{{ "%.2f"|format(product.price) }}</p>
                             {% if product.stock <= 0 %}
-                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                 Out of Stock
                             </span>
                             {% endif %}
@@ -202,7 +109,7 @@
                         <div class="flex space-x-2">
                             <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="inline">
                                 <input type="hidden" name="quantity" value="1">
-                                <button type="submit" class="p-2 {% if product.stock <= 0 %}text-gray-400 cursor-not-allowed{% else %}text-emerald-600 hover:text-emerald-700{% endif %} rounded-full hover:bg-emerald-50" {% if product.stock <= 0 %}disabled{% endif %}>
+                                <button type="submit" class="p-2 {% if product.stock <= 0 %}text-gray-400 cursor-not-allowed{% else %}text-emerald-600 hover:text-white hover:bg-emerald-600{% endif %} rounded-full border-2 border-emerald-600 transition-colors duration-300" {% if product.stock <= 0 %}disabled{% endif %}>
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                     </svg>
@@ -210,11 +117,11 @@
                             </form>
                             {% if current_user.is_authenticated %}
                             <button type="button" 
-                                class="wishlist-btn p-2 {% if product.id in user_wishlist_product_ids %}text-red-500 hover:text-red-600{% else %}text-gray-400 hover:text-red-500{% endif %} rounded-full hover:bg-gray-50"
+                                class="wishlist-btn p-2 rounded-full border-2 transition-colors duration-300 {% if product.id in user_wishlist_product_ids %}border-red-500 text-red-500 hover:bg-red-500 hover:text-white{% else %}border-gray-300 text-gray-400 hover:border-red-500 hover:text-red-500{% endif %}"
                                 data-product-id="{{ product.id }}"
                                 data-in-wishlist="{% if product.id in user_wishlist_product_ids %}true{% else %}false{% endif %}"
                                 {% if product.id in user_wishlist_product_ids %}data-wishlist-item-id="{{ user_wishlist_items[product.id] }}"{% endif %}>
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6" fill="{% if product.id in user_wishlist_product_ids %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                 </svg>
                             </button>
@@ -228,33 +135,180 @@
     </div>
 </div>
 
-<!-- Special Offers -->
-<div class="bg-emerald-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div class="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+<!-- Categories Section -->
+<div class="bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="text-center mb-12">
+            <span class="block text-emerald-600 font-semibold text-sm uppercase tracking-wider mb-2">Explore</span>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">Shop by Category</h2>
+            <p class="mt-4 text-xl text-gray-500 max-w-2xl mx-auto">Find everything you need, organized in convenient categories</p>
+        </div>
+        <div class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
+            {% for category in categories %}
+            <a href="{{ url_for('products', category=category.id) }}" class="group">
+                <div class="relative rounded-2xl overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105">
+                    <div class="w-full h-80 bg-gray-200 overflow-hidden">
+                        <img src="{{ category.image_url }}" alt="{{ category.name }}" 
+                            class="w-full h-full object-center object-cover transform transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-8">
+                        <h3 class="text-2xl font-bold text-white mb-2">{{ category.name }}</h3>
+                        <p class="text-gray-300 group-hover:text-white transition-colors duration-300">{{ category.description }}</p>
+                        <div class="mt-4 inline-flex items-center text-emerald-400 group-hover:text-emerald-300">
+                            Shop Now
+                            <svg class="ml-2 w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Featured Products -->
+<div class="bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="flex items-center justify-between mb-12">
             <div>
+                <span class="block text-emerald-600 font-semibold text-sm uppercase tracking-wider mb-2">Handpicked</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">Featured Products</h2>
+            </div>
+            <a href="{{ url_for('products') }}" class="group inline-flex items-center text-emerald-600 hover:text-emerald-700 font-medium">
+                View All
+                <svg class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+            </a>
+        </div>
+        
+        <div class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {% for product in featured_products %}
+            <div class="group relative bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
+                <div class="relative w-full h-60 bg-gray-200 aspect-w-1 aspect-h-1 overflow-hidden">
+                    {% if product.image_url %}
+                    <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" 
+                        class="w-full h-full object-center object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                        <svg class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <a href="{{ url_for('product_details', id=product.id) }}">
+                            {{ product.name }}
+                        </a>
+                    </h3>
+                    <div class="mt-2 flex items-center">
+                        <div class="flex items-center">
+                            {% for i in range(5) %}
+                                {% if i < product.avg_rating|int %}
+                                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                </svg>
+                                {% else %}
+                                <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <p class="ml-2 text-sm text-gray-500">({{ product.total_ratings }})</p>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <p class="text-2xl font-bold text-gray-900">₹{{ "%.2f"|format(product.price) }}</p>
+                            {% if product.stock <= 0 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Out of Stock
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="flex space-x-2">
+                            <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="inline">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="p-2 {% if product.stock <= 0 %}text-gray-400 cursor-not-allowed{% else %}text-emerald-600 hover:text-white hover:bg-emerald-600{% endif %} rounded-full border-2 border-emerald-600 transition-colors duration-300" {% if product.stock <= 0 %}disabled{% endif %}>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                            {% if current_user.is_authenticated %}
+                            <button type="button" 
+                                class="wishlist-btn p-2 rounded-full border-2 transition-colors duration-300 {% if product.id in user_wishlist_product_ids %}border-red-500 text-red-500 hover:bg-red-500 hover:text-white{% else %}border-gray-300 text-gray-400 hover:border-red-500 hover:text-red-500{% endif %}"
+                                data-product-id="{{ product.id }}"
+                                data-in-wishlist="{% if product.id in user_wishlist_product_ids %}true{% else %}false{% endif %}"
+                                {% if product.id in user_wishlist_product_ids %}data-wishlist-item-id="{{ user_wishlist_items[product.id] }}"{% endif %}>
+                                <svg class="w-6 h-6" fill="{% if product.id in user_wishlist_product_ids %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Newsletter Section -->
+<div class="relative bg-emerald-700 overflow-hidden">
+    <div class="absolute inset-0">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"30\" height=\"30\" viewBox=\"0 0 30 30\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z\" fill=\"rgba(255,255,255,0.07)\"%3E%3C/path%3E%3C/svg%3E')] opacity-10"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+            <div class="max-w-md">
                 <h2 class="text-3xl font-extrabold text-white sm:text-4xl">
                     Get 20% off your first order
                 </h2>
-                <p class="mt-4 text-lg text-emerald-100">
+                <p class="mt-4 text-xl text-emerald-100">
                     Sign up for our newsletter and receive a special discount on your first purchase. Stay updated with our latest products and offers.
                 </p>
             </div>
-            <div class="mt-8 lg:mt-0">
+            <div class="mt-12 lg:mt-0">
                 <form class="sm:flex">
-                    <label for="email-address" class="sr-only">Email address</label>
-                    <input id="email-address" name="email" type="email" required
-                        class="w-full px-5 py-3 border border-transparent placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-offset-emerald-700 focus:ring-white focus:border-white sm:max-w-xs rounded-md"
-                        placeholder="Enter your email">
-                    <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3 sm:flex-shrink-0">
+                    <div class="min-w-0 flex-1">
+                        <label for="email-address" class="sr-only">Email address</label>
+                        <input id="email-address" name="email" type="email" required
+                            class="block w-full px-5 py-4 text-base text-gray-900 placeholder-gray-500 border-0 focus:outline-none focus:ring-2 focus:ring-emerald-400 rounded-l-full"
+                            placeholder="Enter your email">
+                    </div>
+                    <div class="mt-3 sm:mt-0 sm:ml-3">
                         <button type="submit"
-                            class="w-full flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-emerald-600 bg-white hover:bg-emerald-50">
+                            class="block w-full sm:w-auto px-8 py-4 border border-transparent text-base font-medium rounded-r-full text-emerald-700 bg-white hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-emerald-700 focus:ring-white transition-colors duration-300">
                             Subscribe
                         </button>
                     </div>
                 </form>
+                <p class="mt-3 text-sm text-emerald-100">
+                    We care about your data. Read our 
+                    <a href="#" class="font-medium text-white hover:text-emerald-100 underline">Privacy Policy</a>.
+                </p>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
 {% endblock %} 
