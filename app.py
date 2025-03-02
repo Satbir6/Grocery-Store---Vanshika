@@ -953,8 +953,17 @@ def logout():
 @app.route('/account')
 @login_required
 def account():
-    # Get user's orders
-    orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
+    # Get pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = 5  # Number of orders per page
+    
+    # Check if this is an AJAX request for orders only
+    is_ajax = request.args.get('ajax') == 'true'
+    orders_only = request.args.get('orders_only') == 'true'
+    
+    # Get user's orders with pagination
+    order_pagination = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).paginate(page=page, per_page=per_page)
+    orders = order_pagination.items
     
     # Get user's wishlist
     wishlist = WishlistItem.query.filter_by(user_id=current_user.id).all()
@@ -962,8 +971,15 @@ def account():
     # Get user's cart
     cart = Cart.query.filter_by(user_id=current_user.id).first()
     
+    # If this is an AJAX request for orders only, return just the orders partial
+    if is_ajax and orders_only:
+        return render_template('partials/account-orders.html', 
+                             orders=orders,
+                             order_pagination=order_pagination)
+    
     return render_template('pages/account.html', 
                          orders=orders,
+                         order_pagination=order_pagination,
                          wishlist=wishlist,
                          cart=cart)
 
