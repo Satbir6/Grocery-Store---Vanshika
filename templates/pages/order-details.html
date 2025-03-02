@@ -20,6 +20,7 @@
                     {% else %}bg-gray-100 text-gray-800{% endif %}">
                     {{ order.status }}
                 </span>
+                {% if order.status != 'Delivered' and order.status != 'Cancelled' %}
                 <form action="{{ url_for('update_order_status', id=order.id) }}" method="POST" class="flex items-center space-x-2">
                     <select name="status" class="rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
@@ -27,10 +28,20 @@
                         <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
                         <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
                     </select>
-                    <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">
+                    <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-emerald-600 rounded-lg shadow-sm text-sm font-medium text-emerald-600 bg-white hover:bg-emerald-700 hover:text-white hover:border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
                         Update Status
                     </button>
                 </form>
+                {% endif %}
+
+                {% if order.status == 'Shipped' %}
+                <form action="{{ url_for('update_order_status', id=order.id) }}" method="POST" class="mt-2">
+                    <input type="hidden" name="status" value="Delivered">
+                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition w-full">
+                        Mark as Delivered
+                    </button>
+                </form>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -43,7 +54,7 @@
                     <h2 class="text-xl font-semibold text-gray-900">Order Items</h2>
                 </div>
                 <div class="divide-y divide-gray-200">
-                    {% for item in order.items %}
+                    {% for item in order.order_items %}
                     {% if item.product.seller_id == current_user.id %}
                     <div class="p-6">
                         <div class="flex items-center">
@@ -83,20 +94,20 @@
                     <!-- Shipping Address -->
                     <div>
                         <h3 class="text-sm font-medium text-gray-700 mb-2">Shipping Address</h3>
-                        <p class="text-gray-900">{{ order.shipping_address.street }}</p>
-                        {% if order.shipping_address.apartment %}
-                        <p class="text-gray-900">{{ order.shipping_address.apartment }}</p>
+                        <p class="text-gray-900">{{ order.address.line1 }}</p>
+                        {% if order.address.line2 %}
+                        <p class="text-gray-900">{{ order.address.line2 }}</p>
                         {% endif %}
                         <p class="text-gray-900">
-                            {{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.zip_code }}
+                            {{ order.address.city }}, {{ order.address.state }} {{ order.address.zip_code }}
                         </p>
+                        <p class="text-gray-900">{{ order.address.country }}</p>
                     </div>
 
                     <!-- Payment Info -->
                     <div>
                         <h3 class="text-sm font-medium text-gray-700 mb-2">Payment Information</h3>
-                        <p class="text-gray-900">{{ order.payment_method }}</p>
-                        <p class="text-gray-600">Transaction ID: {{ order.transaction_id }}</p>
+                        <p class="text-gray-900">Cash on Delivery</p>
                     </div>
 
                     <!-- Order Summary -->
@@ -105,26 +116,20 @@
                         <div class="space-y-2">
                             <div class="flex justify-between text-sm">
                                 <p class="text-gray-600">Subtotal</p>
-                                <p class="text-gray-900">₹{{ "%.2f"|format(order.subtotal) }}</p>
+                                <p class="text-gray-900">₹{{ "%.2f"|format(order.total_amount) }}</p>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <p class="text-gray-600">Shipping</p>
-                                <p class="text-gray-900">₹{{ "%.2f"|format(order.shipping_fee) }}</p>
+                                <p class="text-gray-900">₹0.00</p>
                             </div>
-                            {% if order.discount %}
-                            <div class="flex justify-between text-sm">
-                                <p class="text-gray-600">Discount</p>
-                                <p class="text-red-600">-₹{{ "%.2f"|format(order.discount) }}</p>
-                            </div>
-                            {% endif %}
                             <div class="flex justify-between text-sm">
                                 <p class="text-gray-600">Tax</p>
-                                <p class="text-gray-900">₹{{ "%.2f"|format(order.tax) }}</p>
+                                <p class="text-gray-900">Included</p>
                             </div>
                             <div class="border-t pt-2 mt-2">
                                 <div class="flex justify-between">
                                     <p class="text-base font-medium text-gray-900">Total</p>
-                                    <p class="text-base font-medium text-gray-900">₹{{ "%.2f"|format(order.total) }}</p>
+                                    <p class="text-base font-medium text-gray-900">₹{{ "%.2f"|format(order.total_amount) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -134,18 +139,12 @@
 
             <!-- Actions -->
             <div class="mt-6 space-y-4">
-                <button class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition flex items-center justify-center">
+                <a href="{{ url_for('seller_dashboard') }}" class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition flex items-center justify-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Print Order
-                </button>
-                <button class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition flex items-center justify-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    Email Invoice
-                </button>
+                    Back to Dashboard
+                </a>
             </div>
         </div>
     </div>

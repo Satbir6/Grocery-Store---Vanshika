@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Order Details - Fresh Mart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Order #{{ order.id }}</h1>
+                <p class="text-gray-600">Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                    {% if order.status == 'Delivered' %}bg-green-100 text-green-800
+                    {% elif order.status == 'Processing' %}bg-yellow-100 text-yellow-800
+                    {% elif order.status == 'Shipped' %}bg-blue-100 text-blue-800
+                    {% elif order.status == 'Cancelled' %}bg-red-100 text-red-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ order.status }}
+                </span>
+                {% if order.status in ['Pending', 'Processing'] %}
+                <form action="{{ url_for('cancel_order', id=order.id) }}" method="POST" class="flex items-center space-x-2" onsubmit="return confirm('Are you sure you want to cancel this order?');">
+                    <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                        Cancel Order
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Order Items -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900">Order Items</h2>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    {% for item in order.order_items %}
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <img src="{{ url_for('static', filename=item.product.image_url) }}" alt="{{ item.product.name }}" 
+                                class="h-20 w-20 rounded-lg object-cover">
+                            <div class="ml-4 flex-1">
+                                <h3 class="text-lg font-medium text-gray-900">{{ item.product.name }}</h3>
+                                <p class="text-gray-500">Quantity: {{ item.quantity }}</p>
+                                <p class="text-gray-500">Price per unit: ₹{{ "%.2f"|format(item.price) }}</p>
+                                <p class="text-gray-500">Seller: {{ item.product.seller.name }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-medium text-gray-900">₹{{ "%.2f"|format(item.quantity * item.price) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Details -->
+        <div>
+            <div class="bg-white rounded-lg shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900">Order Details</h2>
+                </div>
+                <div class="p-6 space-y-6">
+                    <!-- Shipping Address -->
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">Shipping Address</h3>
+                        <p class="text-gray-900">{{ order.address.line1 }}</p>
+                        {% if order.address.line2 %}
+                        <p class="text-gray-900">{{ order.address.line2 }}</p>
+                        {% endif %}
+                        <p class="text-gray-900">
+                            {{ order.address.city }}, {{ order.address.state }} {{ order.address.zip_code }}
+                        </p>
+                        <p class="text-gray-900">{{ order.address.country }}</p>
+                    </div>
+
+                    <!-- Payment Info -->
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">Payment Information</h3>
+                        <p class="text-gray-900">Cash on Delivery</p>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-sm font-medium text-gray-700 mb-4">Order Summary</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <p class="text-gray-600">Subtotal</p>
+                                <p class="text-gray-900">₹{{ "%.2f"|format(order.total_amount) }}</p>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <p class="text-gray-600">Shipping</p>
+                                <p class="text-gray-900">₹0.00</p>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <p class="text-gray-600">Tax</p>
+                                <p class="text-gray-900">Included</p>
+                            </div>
+                            <div class="border-t pt-2 mt-2">
+                                <div class="flex justify-between">
+                                    <p class="text-base font-medium text-gray-900">Total</p>
+                                    <p class="text-base font-medium text-gray-900">₹{{ "%.2f"|format(order.total_amount) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Status Timeline -->
+            <div class="bg-white rounded-lg shadow-sm mt-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900">Order Status</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100">
+                                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-base font-medium text-gray-900">Order Placed</h3>
+                                <p class="text-sm text-gray-500">{{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full {% if order.status in ['Processing', 'Shipped', 'Delivered'] %}bg-emerald-100{% else %}bg-gray-100{% endif %}">
+                                    {% if order.status in ['Processing', 'Shipped', 'Delivered'] %}
+                                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    {% else %}
+                                    <span class="text-gray-500">2</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-base font-medium text-gray-900">Processing</h3>
+                                <p class="text-sm text-gray-500">Your order is being prepared</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full {% if order.status in ['Shipped', 'Delivered'] %}bg-emerald-100{% else %}bg-gray-100{% endif %}">
+                                    {% if order.status in ['Shipped', 'Delivered'] %}
+                                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    {% else %}
+                                    <span class="text-gray-500">3</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-base font-medium text-gray-900">Shipped</h3>
+                                <p class="text-sm text-gray-500">Your order is on the way</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full {% if order.status == 'Delivered' %}bg-emerald-100{% else %}bg-gray-100{% endif %}">
+                                    {% if order.status == 'Delivered' %}
+                                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    {% else %}
+                                    <span class="text-gray-500">4</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-base font-medium text-gray-900">Delivered</h3>
+                                <p class="text-sm text-gray-500">Your order has been delivered</p>
+                            </div>
+                        </div>
+                        
+                        {% if order.status == 'Cancelled' %}
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-red-100">
+                                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-base font-medium text-red-600">Cancelled</h3>
+                                <p class="text-sm text-gray-500">Your order has been cancelled</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-6 space-y-4">
+                <a href="{{ url_for('account') }}" class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to My Account
+                </a>
+                
+                {% if order.status == 'Delivered' %}
+                <form action="{{ url_for('rate_product', id=order.order_items[0].product_id) }}" method="GET" class="w-full">
+                    <button type="submit" class="w-full bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        Rate Products
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

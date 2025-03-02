@@ -469,6 +469,17 @@ def place_order():
         flash('Your cart is empty', 'error')
         return redirect(url_for('cart'))
     
+    # Check if all products have sufficient stock
+    insufficient_stock = []
+    for cart_item in cart.items:
+        product = cart_item.product
+        if product.stock < cart_item.quantity:
+            insufficient_stock.append(f"{product.name} (only {product.stock} available)")
+    
+    if insufficient_stock:
+        flash(f"Insufficient stock for: {', '.join(insufficient_stock)}", 'error')
+        return redirect(url_for('cart'))
+    
     # Get address information
     address_id = request.form.get('address_id')
     
@@ -523,7 +534,7 @@ def place_order():
     db.session.add(order)
     db.session.flush()  # Get order ID without committing
     
-    # Create order items
+    # Create order items and update product stock
     for cart_item in cart.items:
         order_item = OrderItem(
             order_id=order.id,
@@ -532,6 +543,10 @@ def place_order():
             price=cart_item.product.price  # Store current price
         )
         db.session.add(order_item)
+        
+        # Decrease product stock
+        product = Product.query.get(cart_item.product_id)
+        product.stock -= cart_item.quantity
     
     # Clear the cart
     CartItem.query.filter_by(cart_id=cart.id).delete()
@@ -845,7 +860,7 @@ def order_details(id):
     
     order = Order.query.get_or_404(id)
     # Check if the seller has any products in this order
-    has_access = any(item.product.seller_id == current_user.id for item in order.items)
+    has_access = any(item.product.seller_id == current_user.id for item in order.order_items)
     if not has_access:
         flash('Access denied. You can only view orders containing your products.', 'error')
         return redirect(url_for('seller_dashboard'))
@@ -861,16 +876,30 @@ def update_order_status(id):
     
     order = Order.query.get_or_404(id)
     # Check if the seller has any products in this order
-    has_access = any(item.product.seller_id == current_user.id for item in order.items)
+    has_access = any(item.product.seller_id == current_user.id for item in order.order_items)
     if not has_access:
         flash('Access denied. You can only update orders containing your products.', 'error')
         return redirect(url_for('seller_dashboard'))
     
     new_status = request.form.get('status')
+    old_status = order.status
+    
     if new_status in ['Processing', 'Shipped', 'Delivered', 'Cancelled']:
+        # If order is being cancelled and wasn't already cancelled, restore stock
+        if new_status == 'Cancelled' and old_status != 'Cancelled':
+            for item in order.order_items:
+                if item.product.seller_id == current_user.id:
+                    product = Product.query.get(item.product_id)
+                    if product:
+                        product.stock += item.quantity
+        
         order.status = new_status
         db.session.commit()
-        flash(f'Order status updated to {new_status}', 'success')
+        
+        if new_status == 'Cancelled' and old_status != 'Cancelled':
+            flash('Order cancelled and product stock restored', 'success')
+        else:
+            flash(f'Order status updated to {new_status}', 'success')
     else:
         flash('Invalid status value', 'error')
     
@@ -1302,6 +1331,49 @@ def remove_from_wishlist(item_id):
     
     flash('Item removed from wishlist', 'success')
     return redirect(url_for('wishlist'))
+
+@app.route('/orders/<int:id>')
+@login_required
+def user_order_details(id):
+    order = Order.query.get_or_404(id)
+    
+    # Check if the order belongs to the current user
+    if order.user_id != current_user.id:
+        flash('Access denied. You can only view your own orders.', 'error')
+        return redirect(url_for('account'))
+    
+    return render_template('pages/user-order-details.html', order=order)
+
+@app.route('/orders/<int:id>/cancel', methods=['POST'])
+@login_required
+def cancel_order(id):
+    order = Order.query.get_or_404(id)
+    
+    # Check if the order belongs to the current user
+    if order.user_id != current_user.id:
+        flash('Access denied. You can only cancel your own orders.', 'error')
+        return redirect(url_for('account'))
+    
+    # Check if the order can be cancelled (only Pending or Processing orders)
+    if order.status not in ['Pending', 'Processing']:
+        flash('This order cannot be cancelled.', 'error')
+        return redirect(url_for('user_order_details', id=order.id))
+    
+    # Store the old status
+    old_status = order.status
+    
+    # Update order status
+    order.status = 'Cancelled'
+    
+    # Restore product stock if order was not already cancelled
+    if old_status != 'Cancelled':
+        for item in order.order_items:
+            product = item.product
+            product.stock += item.quantity
+    
+    db.session.commit()
+    flash('Order cancelled successfully.', 'success')
+    return redirect(url_for('user_order_details', id=order.id))
 
 # Initialize database with categories
 def init_db():
