@@ -83,10 +83,17 @@
                         <p class="ml-1 text-sm text-gray-500">({{ product.total_ratings }})</p>
                     </div>
                     <div class="mt-2 flex justify-between items-center">
-                        <p class="text-xl font-bold text-gray-900">₹{{ "%.2f"|format(product.price) }}</p>
+                        <div class="flex items-center">
+                            <p class="text-xl font-bold text-gray-900">₹{{ "%.2f"|format(product.price) }}</p>
+                            {% if product.stock <= 0 %}
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                Out of Stock
+                            </span>
+                            {% endif %}
+                        </div>
                         <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="inline">
                             <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="p-2 text-emerald-600 hover:text-emerald-700 rounded-full hover:bg-emerald-50">
+                            <button type="submit" class="p-2 {% if product.stock <= 0 %}text-gray-400 cursor-not-allowed{% else %}text-emerald-600 hover:text-emerald-700{% endif %} rounded-full hover:bg-emerald-50" {% if product.stock <= 0 %}disabled{% endif %}>
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
@@ -185,11 +192,18 @@
                         <p class="ml-1 text-sm text-gray-500">({{ product.total_ratings }})</p>
                     </div>
                     <div class="mt-2 flex justify-between items-center">
-                        <p class="text-xl font-bold text-gray-900">₹{{ "%.2f"|format(product.price) }}</p>
+                        <div class="flex items-center">
+                            <p class="text-xl font-bold text-gray-900">₹{{ "%.2f"|format(product.price) }}</p>
+                            {% if product.stock <= 0 %}
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                Out of Stock
+                            </span>
+                            {% endif %}
+                        </div>
                         <div class="flex space-x-2">
                             <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="inline">
                                 <input type="hidden" name="quantity" value="1">
-                                <button type="submit" class="p-2 text-emerald-600 hover:text-emerald-700 rounded-full hover:bg-emerald-50">
+                                <button type="submit" class="p-2 {% if product.stock <= 0 %}text-gray-400 cursor-not-allowed{% else %}text-emerald-600 hover:text-emerald-700{% endif %} rounded-full hover:bg-emerald-50" {% if product.stock <= 0 %}disabled{% endif %}>
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                     </svg>

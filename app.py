@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, func
 from sqlalchemy.orm import relationship, backref
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.sql import func
@@ -454,7 +454,105 @@ def checkout():
     if not cart or not cart.items:
         flash('Your cart is empty', 'error')
         return redirect(url_for('cart'))
-    return render_template('pages/checkout.html', cart=cart)
+    
+    # Get user's saved addresses
+    addresses = Address.query.filter_by(user_id=current_user.id).all()
+    
+    return render_template('pages/checkout.html', cart=cart, addresses=addresses)
+
+@app.route('/place-order', methods=['POST'])
+@login_required
+def place_order():
+    # Get user's cart
+    cart = Cart.query.filter_by(user_id=current_user.id).first()
+    if not cart or not cart.items:
+        flash('Your cart is empty', 'error')
+        return redirect(url_for('cart'))
+    
+    # Get address information
+    address_id = request.form.get('address_id')
+    
+    # Handle new address
+    if address_id == 'new':
+        # Check if user wants to save the address
+        save_address = 'save_address' in request.form
+        
+        # Create new address
+        address = Address(
+            user_id=current_user.id,
+            line1=request.form.get('line1'),
+            line2=request.form.get('line2'),
+            city=request.form.get('city'),
+            state=request.form.get('state'),
+            country=request.form.get('country'),
+            zip_code=request.form.get('zip_code')
+        )
+        
+        # Validate required fields
+        if not address.line1 or not address.city or not address.state or not address.country or not address.zip_code:
+            flash('Please fill in all required address fields', 'error')
+            return redirect(url_for('checkout'))
+        
+        # Save address if requested
+        if save_address:
+            db.session.add(address)
+            db.session.commit()
+        else:
+            # Add to session but don't commit yet
+            db.session.add(address)
+            db.session.flush()
+    else:
+        # Use existing address
+        address = Address.query.get(address_id)
+        if not address or address.user_id != current_user.id:
+            flash('Invalid address selected', 'error')
+            return redirect(url_for('checkout'))
+    
+    # Calculate order total
+    shipping_fee = 0 if cart.total >= 50 else 4.99
+    tax = cart.total * 0.1
+    total_amount = cart.total + shipping_fee + tax
+    
+    # Create order
+    order = Order(
+        user_id=current_user.id,
+        total_amount=total_amount,
+        status='Pending',
+        address_id=address.id
+    )
+    db.session.add(order)
+    db.session.flush()  # Get order ID without committing
+    
+    # Create order items
+    for cart_item in cart.items:
+        order_item = OrderItem(
+            order_id=order.id,
+            product_id=cart_item.product_id,
+            quantity=cart_item.quantity,
+            price=cart_item.product.price  # Store current price
+        )
+        db.session.add(order_item)
+    
+    # Clear the cart
+    CartItem.query.filter_by(cart_id=cart.id).delete()
+    
+    # Commit all changes
+    db.session.commit()
+    
+    flash('Order placed successfully!', 'success')
+    return redirect(url_for('order_confirmation', order_id=order.id))
+
+@app.route('/order-confirmation/<int:order_id>')
+@login_required
+def order_confirmation(order_id):
+    order = Order.query.get_or_404(order_id)
+    
+    # Ensure user can only view their own orders
+    if order.user_id != current_user.id:
+        flash('Access denied', 'error')
+        return redirect(url_for('account'))
+    
+    return render_template('pages/order-confirmation.html', order=order)
 
 @app.route('/seller/dashboard')
 @login_required
@@ -463,28 +561,162 @@ def seller_dashboard():
         flash('Access denied. Seller account required.', 'error')
         return redirect(url_for('home'))
     
-    products = Product.query.filter_by(seller_id=current_user.id).all()
-    orders = Order.query.join(OrderItem).join(Product).filter(
+    # Get filter parameters
+    category_id = request.args.get('category_id', type=int)
+    search_query = request.args.get('search', '')
+    sort_by = request.args.get('sort_by', 'created_at')
+    sort_order = request.args.get('sort_order', 'desc')
+    stock_filter = request.args.get('stock', '')
+    products_only = request.args.get('products_only') == 'true'
+    orders_only = request.args.get('orders_only') == 'true'
+    order_status = request.args.get('status', '')  # Changed from order_status to status to match the template
+    order_sort_by = request.args.get('order_sort_by', 'created_at')
+    order_sort_order = request.args.get('order_sort_order', 'desc')
+    
+    # Get page number for pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Number of items per page
+    
+    # Calculate seller statistics
+    stats = {}
+    
+    # Get total number of products
+    stats['total_products'] = Product.query.filter_by(seller_id=current_user.id).count()
+    
+    # Get total sales amount
+    seller_product_ids = db.session.query(Product.id).filter_by(seller_id=current_user.id).all()
+    seller_product_ids = [p[0] for p in seller_product_ids]
+    
+    # Calculate total sales from order items
+    total_sales = db.session.query(func.sum(OrderItem.price * OrderItem.quantity)).filter(
+        OrderItem.product_id.in_(seller_product_ids)
+    ).scalar() or 0
+    stats['total_sales'] = total_sales
+    
+    # Count total orders with seller's products
+    order_items_subquery = db.session.query(OrderItem.order_id).filter(
+        OrderItem.product_id.in_(seller_product_ids)
+    ).distinct().subquery()
+    stats['total_orders'] = db.session.query(Order.id).filter(Order.id.in_(order_items_subquery)).count()
+    
+    # Calculate average rating
+    avg_rating = db.session.query(func.avg(Rating.rating)).join(Product).filter(
         Product.seller_id == current_user.id
-    ).order_by(Order.created_at.desc()).all()
+    ).scalar() or 0
+    stats['avg_rating'] = round(avg_rating, 1)
     
-    # Calculate statistics
-    total_sales = sum(order.total_amount for order in orders)
-    total_orders = len(orders)
-    total_products = len(products)
-    avg_rating = sum(p.avg_rating for p in products) / len(products) if products else 0
-    total_ratings = sum(p.total_ratings for p in products)
+    # Count total ratings
+    stats['total_ratings'] = db.session.query(Rating).join(Product).filter(
+        Product.seller_id == current_user.id
+    ).count()
     
-    return render_template('pages/seller-dashboard.html',
-                         products=products,
-                         orders=orders,
-                         stats={
-                             'total_sales': total_sales,
-                             'total_orders': total_orders,
-                             'total_products': total_products,
-                             'avg_rating': round(avg_rating, 1),
-                             'total_ratings': total_ratings
-                         })
+    # Base query for products
+    products_query = Product.query.filter_by(seller_id=current_user.id)
+    
+    # Apply filters
+    if category_id:
+        subcategories = SubCategory.query.filter_by(category_id=category_id).all()
+        subcategory_ids = [sub.id for sub in subcategories]
+        products_query = products_query.filter(Product.sub_category_id.in_(subcategory_ids))
+    
+    if search_query:
+        products_query = products_query.filter(Product.name.ilike(f'%{search_query}%'))
+    
+    if stock_filter == 'in_stock':
+        products_query = products_query.filter(Product.stock > 0)
+    elif stock_filter == 'out_of_stock':
+        products_query = products_query.filter(Product.stock == 0)
+    
+    # Apply sorting
+    if sort_by == 'name':
+        products_query = products_query.order_by(Product.name.asc() if sort_order == 'asc' else Product.name.desc())
+    elif sort_by == 'price':
+        products_query = products_query.order_by(Product.price.asc() if sort_order == 'asc' else Product.price.desc())
+    elif sort_by == 'stock':
+        products_query = products_query.order_by(Product.stock.asc() if sort_order == 'asc' else Product.stock.desc())
+    else:  # default to created_at
+        products_query = products_query.order_by(Product.created_at.asc() if sort_order == 'asc' else Product.created_at.desc())
+    
+    # Get orders that contain the seller's products
+    if not products_only:
+        # Find all orders that contain products from this seller
+        seller_product_ids = db.session.query(Product.id).filter_by(seller_id=current_user.id).all()
+        seller_product_ids = [p[0] for p in seller_product_ids]
+        
+        # Find order items that contain these products
+        order_items_subquery = db.session.query(OrderItem.order_id).filter(
+            OrderItem.product_id.in_(seller_product_ids)
+        ).distinct().subquery()
+        
+        # Get the orders
+        orders_query = Order.query.filter(Order.id.in_(order_items_subquery))
+        
+        # Apply order status filter
+        if order_status:
+            orders_query = orders_query.filter(Order.status == order_status)
+        
+        # Apply sorting to orders
+        if order_sort_by == 'created_at':
+            orders_query = orders_query.order_by(Order.created_at.asc() if order_sort_order == 'asc' else Order.created_at.desc())
+        elif order_sort_by == 'total_amount':
+            orders_query = orders_query.order_by(Order.total_amount.asc() if order_sort_order == 'asc' else Order.total_amount.desc())
+        else:
+            orders_query = orders_query.order_by(Order.created_at.desc())
+        
+        # Paginate orders if only showing orders
+        if orders_only:
+            orders = orders_query.paginate(page=page, per_page=per_page, error_out=False)
+            order_pagination = orders
+            orders = orders.items
+            products = None
+        else:
+            orders = orders_query.limit(5).all()  # Show only 5 recent orders on the dashboard
+            order_pagination = None
+            products = products_query.paginate(page=page, per_page=per_page, error_out=False)
+    else:
+        # Only show products
+        products = products_query.paginate(page=page, per_page=per_page, error_out=False)
+        orders = None
+        order_pagination = None
+    
+    # Get categories for filter dropdown
+    categories = Category.query.all()
+    
+    # Prepare current filters for display
+    current_filters = {
+        'search': search_query,
+        'category_id': category_id,
+        'stock': stock_filter
+    }
+    
+    # Check if this is an AJAX request
+    is_ajax = request.args.get('ajax') == 'true'
+    
+    if is_ajax:
+        if products_only:
+            return render_template('partials/product-list.html', 
+                                  products=products,
+                                  current_filters=current_filters)
+        elif orders_only:
+            return render_template('partials/order-list.html',
+                                  orders=orders,
+                                  order_pagination=order_pagination)
+    
+    return render_template('pages/seller-dashboard.html', 
+                          products=products, 
+                          orders=orders,
+                          order_pagination=order_pagination,
+                          categories=categories,
+                          category_id=category_id,
+                          search_query=search_query,
+                          sort_by=sort_by,
+                          sort_order=sort_order,
+                          stock_filter=stock_filter,
+                          current_filters=current_filters,
+                          products_only=products_only,
+                          orders_only=orders_only,
+                          order_status=order_status,
+                          stats=stats)
 
 @app.route('/seller/products/add', methods=['GET', 'POST'])
 @login_required
@@ -890,6 +1122,17 @@ def rate_product(id):
         flash('Rating must be between 1 and 5 stars', 'error')
         return redirect(url_for('product_details', id=id))
     
+    # Check if user has purchased this product
+    has_purchased = db.session.query(OrderItem).join(Order).filter(
+        Order.user_id == current_user.id,
+        OrderItem.product_id == id,
+        Order.status.in_(['Delivered', 'Shipped'])  # Only count completed orders
+    ).first() is not None
+    
+    if not has_purchased:
+        flash('You can only rate products you have purchased', 'error')
+        return redirect(url_for('product_details', id=id))
+    
     # Check if user has already rated this product
     existing_rating = Rating.query.filter_by(
         user_id=current_user.id,
@@ -917,19 +1160,43 @@ def rate_product(id):
 def product_details(id):
     product = Product.query.get_or_404(id)
     user_rating = None
+    has_purchased = False
+    
     if current_user.is_authenticated:
+        # Check if user has rated this product
         user_rating = Rating.query.filter_by(
             user_id=current_user.id,
             product_id=id
         ).first()
+        
+        # Check if user has purchased this product
+        has_purchased = db.session.query(OrderItem).join(Order).filter(
+            Order.user_id == current_user.id,
+            OrderItem.product_id == id,
+            Order.status.in_(['Delivered', 'Shipped'])  # Only count completed orders
+        ).first() is not None
     
-    # Get all ratings for this product
-    ratings = Rating.query.filter_by(product_id=id).order_by(Rating.created_at.desc()).all()
+    # Get all ratings for this product with pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 5  # Number of reviews per page
+    
+    ratings_query = Rating.query.filter_by(product_id=id).order_by(Rating.created_at.desc())
+    ratings_pagination = ratings_query.paginate(page=page, per_page=per_page, error_out=False)
+    ratings = ratings_pagination.items
+    
+    # Get related products from the same subcategory
+    related_products = Product.query.filter(
+        Product.sub_category_id == product.sub_category_id,
+        Product.id != product.id
+    ).order_by(func.random()).limit(4).all()
     
     return render_template('pages/product-details.html',
                          product=product,
                          user_rating=user_rating,
-                         ratings=ratings)
+                         ratings=ratings,
+                         pagination=ratings_pagination,
+                         has_purchased=has_purchased,
+                         related_products=related_products)
 
 @app.route('/wishlist')
 @login_required

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmation - Fresh Mart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-12">
+        <div class="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full mb-6">
+            <svg class="w-16 h-16 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Thank You for Your Order!</h1>
+        <p class="text-xl text-gray-600">Your order has been placed successfully.</p>
+        <p class="text-gray-600 mt-2">Order #{{ order.id }}</p>
+        <p class="text-gray-600">Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Order Summary</h2>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="divide-y divide-gray-200">
+            {% for item in order.order_items %}
+            <div class="p-6 flex items-center">
+                <div class="flex-shrink-0 w-20 h-20 bg-gray-200 rounded-md overflow-hidden">
+                    <img src="{{ url_for('static', filename=item.product.image_url) }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                </div>
+                <div class="ml-6 flex-1">
+                    <h3 class="text-base font-medium text-gray-900">{{ item.product.name }}</h3>
+                    <p class="mt-1 text-sm text-gray-500">Quantity: {{ item.quantity }}</p>
+                </div>
+                <p class="text-base font-medium text-gray-900">₹{{ "%.2f"|format(item.price * item.quantity) }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Order Totals -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm text-gray-600">
+                    <p>Subtotal</p>
+                    <p>₹{{ "%.2f"|format(order.total_amount - (0 if order.total_amount >= 50 else 4.99) - (order.total_amount * 0.1)) }}</p>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600">
+                    <p>Shipping</p>
+                    <p>{% if order.total_amount >= 50 %}Free{% else %}₹4.99{% endif %}</p>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600">
+                    <p>Tax</p>
+                    <p>₹{{ "%.2f"|format(order.total_amount * 0.1) }}</p>
+                </div>
+                <div class="pt-2 flex justify-between text-base font-medium text-gray-900">
+                    <p>Total</p>
+                    <p>₹{{ "%.2f"|format(order.total_amount) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipping Information -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Shipping Information</h2>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-900">{{ order.address.line1 }}</p>
+                {% if order.address.line2 %}
+                <p class="text-gray-900">{{ order.address.line2 }}</p>
+                {% endif %}
+                <p class="text-gray-900">{{ order.address.city }}, {{ order.address.state }} {{ order.address.zip_code }}</p>
+                <p class="text-gray-900">{{ order.address.country }}</p>
+            </div>
+        </div>
+
+        <!-- Order Status -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Order Status</h2>
+            </div>
+            <div class="p-6">
+                <div class="flex items-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                        {% if order.status == 'Delivered' %}bg-green-100 text-green-800
+                        {% elif order.status == 'Processing' %}bg-yellow-100 text-yellow-800
+                        {% elif order.status == 'Shipped' %}bg-blue-100 text-blue-800
+                        {% elif order.status == 'Cancelled' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ order.status }}
+                    </span>
+                </div>
+                <p class="mt-4 text-gray-600">
+                    {% if order.status == 'Pending' %}
+                    Your order has been received and is being processed.
+                    {% elif order.status == 'Processing' %}
+                    Your order is being prepared for shipping.
+                    {% elif order.status == 'Shipped' %}
+                    Your order has been shipped and is on its way to you.
+                    {% elif order.status == 'Delivered' %}
+                    Your order has been delivered.
+                    {% elif order.status == 'Cancelled' %}
+                    Your order has been cancelled.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <a href="{{ url_for('home') }}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700">
+            Continue Shopping
+        </a>
+        <a href="{{ url_for('account') }}" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            View My Orders
+        </a>
+    </div>
+</div>
+{% endblock %} 

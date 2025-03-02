@@ -9,94 +9,160 @@
         <div>
             <h1 class="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
             
-            <!-- Contact Information -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                        <input type="email" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                        <input type="tel" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Shipping Address -->
-            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Shipping Address</h2>
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
+            <form action="{{ url_for('place_order') }}" method="POST" id="checkout-form">
+                <!-- Contact Information -->
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
+                    <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <input type="email" name="email" value="{{ current_user.email }}" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" readonly>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                        <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Apartment, suite, etc.</label>
-                        <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
-                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
-                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
-                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                            <input type="tel" name="phone" value="{{ current_user.phone }}" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" readonly>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Payment Method -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Payment Method</h2>
-                <div class="space-y-4">
-                    <div class="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
-                        <input type="radio" name="payment" id="card" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300">
-                        <label for="card" class="flex-1">
-                            <span class="block text-sm font-medium text-gray-900">Credit Card</span>
-                            <span class="block text-sm text-gray-500">Pay securely with your credit card</span>
-                        </label>
-                        <div class="flex items-center space-x-2">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-8">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-8">
+                <!-- Shipping Address -->
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Shipping Address</h2>
+                    
+                    <!-- Address Selection -->
+                    {% if addresses %}
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select a saved address</label>
+                        <div class="space-y-3">
+                            {% for address in addresses %}
+                            <div class="relative flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="address-{{ address.id }}" name="address_id" type="radio" value="{{ address.id }}" 
+                                        class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+                                        {% if loop.first %}checked{% endif %}>
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="address-{{ address.id }}" class="font-medium text-gray-700">
+                                        {{ address.line1 }}{% if address.line2 %}, {{ address.line2 }}{% endif %}, 
+                                        {{ address.city }}, {{ address.state }}, {{ address.country }}, {{ address.zip_code }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            <!-- Option to enter new address -->
+                            <div class="relative flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="address-new" name="address_id" type="radio" value="new" 
+                                        class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="address-new" class="font-medium text-gray-700">
+                                        Use a new address
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="space-y-4 mt-4">
+                    {% endif %}
+                    
+                    <!-- New Address Form (initially hidden if addresses exist) -->
+                    <div id="new-address-form" class="space-y-4 {% if addresses %}hidden{% endif %}">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                <input type="text" name="first_name" value="{{ current_user.name.split(' ')[0] if ' ' in current_user.name else current_user.name }}" 
+                                    class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                <input type="text" name="last_name" value="{{ ' '.join(current_user.name.split(' ')[1:]) if ' ' in current_user.name else '' }}" 
+                                    class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+                        </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                            <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="1234 5678 9012 3456">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 1</label>
+                            <input type="text" name="line1" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 2 (Optional)</label>
+                            <input type="text" name="line2" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="MM/YY">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                <input type="text" name="city" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                <input type="text" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="123">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                                <input type="text" name="state" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                                <input type="text" name="country" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                                <input type="text" name="zip_code" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="save_address" name="save_address" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+                            <label for="save_address" class="ml-2 block text-sm text-gray-900">
+                                Save this address for future orders
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Payment Method</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
+                            <input type="radio" name="payment_method" id="card" value="card" checked 
+                                class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300">
+                            <label for="card" class="flex-1">
+                                <span class="block text-sm font-medium text-gray-900">Credit Card</span>
+                                <span class="block text-sm text-gray-500">Pay securely with your credit card</span>
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-8">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-8">
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 mt-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                                <input type="text" name="card_number" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="1234 5678 9012 3456">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                    <input type="text" name="expiry" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="MM/YY">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                    <input type="text" name="cvv" class="w-full rounded-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500" placeholder="123">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+                
+                <!-- Mobile-only Place Order Button (visible on small screens) -->
+                <div class="mt-8 lg:hidden">
+                    <button type="submit" class="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center">
+                        <span class="mr-2">Place Order</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
         </div>
 
         <!-- Order Summary -->
@@ -151,14 +217,14 @@
                     </div>
                 </div>
 
-                <!-- Place Order Button -->
-                <button class="w-full mt-8 bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center">
-                    <span class="mr-2">Place Order</span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </button>
-
+                <!-- Place Order Button (desktop) -->
+                <button type="submit" form="checkout-form"
+                class="w-full flex justify-center py-2.5 px-4 border mt-4 border-emerald-600 rounded-lg shadow-sm text-sm font-medium text-emerald-600 bg-white hover:bg-emerald-700 hover:text-white hover:border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                <span class="mr-2">Place Order</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </button>
                 <!-- Security Notice -->
                 <p class="mt-4 text-sm text-gray-500 text-center">
                     <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,4 +236,30 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript for address selection -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addressRadios = document.querySelectorAll('input[name="address_id"]');
+        const newAddressForm = document.getElementById('new-address-form');
+        
+        // Function to toggle new address form visibility
+        function toggleNewAddressForm() {
+            const selectedValue = document.querySelector('input[name="address_id"]:checked')?.value;
+            if (selectedValue === 'new') {
+                newAddressForm.classList.remove('hidden');
+            } else {
+                newAddressForm.classList.add('hidden');
+            }
+        }
+        
+        // Add event listeners to all address radio buttons
+        addressRadios.forEach(radio => {
+            radio.addEventListener('change', toggleNewAddressForm);
+        });
+        
+        // Initial check
+        toggleNewAddressForm();
+    });
+</script>
 {% endblock %} 
