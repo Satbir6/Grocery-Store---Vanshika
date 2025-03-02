@@ -88,6 +88,7 @@
                             </span>
                             {% endif %}
                         </div>
+                        <div>
                         <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="inline">
                             <input type="hidden" name="quantity" value="1">
                             <button type="submit" class="p-2 {% if product.stock <= 0 %}text-gray-400 cursor-not-allowed{% else %}text-emerald-600 hover:text-emerald-700{% endif %} rounded-full hover:bg-emerald-50" {% if product.stock <= 0 %}disabled{% endif %}>
@@ -106,6 +107,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                             </svg>
                         </button>
+                    </div>
                         {% endif %}
                     </div>
                 </div>

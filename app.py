@@ -576,21 +576,19 @@ def seller_dashboard():
         flash('Access denied. Seller account required.', 'error')
         return redirect(url_for('home'))
     
-    # Get filter parameters
+    # Get parameters from request
     category_id = request.args.get('category_id', type=int)
     search_query = request.args.get('search', '')
     sort_by = request.args.get('sort_by', 'created_at')
     sort_order = request.args.get('sort_order', 'desc')
     stock_filter = request.args.get('stock', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
     products_only = request.args.get('products_only') == 'true'
     orders_only = request.args.get('orders_only') == 'true'
-    order_status = request.args.get('status', '')  # Changed from order_status to status to match the template
     order_sort_by = request.args.get('order_sort_by', 'created_at')
     order_sort_order = request.args.get('order_sort_order', 'desc')
-    
-    # Get page number for pagination
-    page = request.args.get('page', 1, type=int)
-    per_page = 10  # Number of items per page
+    order_status = request.args.get('status', '')
     
     # Calculate seller statistics
     stats = {}
@@ -685,8 +683,9 @@ def seller_dashboard():
             orders = orders.items
             products = None
         else:
-            orders = orders_query.limit(5).all()  # Show only 5 recent orders on the dashboard
-            order_pagination = None
+            # Change from showing only 5 recent orders to paginating all orders
+            order_pagination = orders_query.paginate(page=page, per_page=per_page, error_out=False)
+            orders = order_pagination.items
             products = products_query.paginate(page=page, per_page=per_page, error_out=False)
     else:
         # Only show products
