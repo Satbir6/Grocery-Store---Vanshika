@@ -1,14 +1,32 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, func
-from sqlalchemy.orm import relationship, backref
-from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy.sql import func
-from flask import abort
+"""
+Grocery Store Web Application
+A modern e-commerce platform for grocery shopping with user and seller functionalities.
+Author: Vanshika
+Version: 1.0.0
+Date: 2024
+"""
+
+# === Standard Library Imports ===
 import os
 import random
+from datetime import datetime
+
+# === Third-Party Imports ===
+from flask import (
+    Flask, render_template, request, redirect, url_for, 
+    flash, session, jsonify, abort
+)
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import (
+    LoginManager, UserMixin, login_user, login_required, 
+    logout_user, current_user
+)
+from sqlalchemy import (
+    Column, Integer, String, Float, Boolean, 
+    DateTime, Text, ForeignKey, func
+)
+from sqlalchemy.orm import relationship, backref
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
 # Initialize Flask app
@@ -25,26 +43,38 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 # Create upload directory if it doesn't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# === Helper Functions ===
 def allowed_file(filename):
+    """
+    Check if the uploaded file has an allowed extension.
+    
+    Args:
+        filename (str): Name of the uploaded file
+        
+    Returns:
+        bool: True if file extension is allowed, False otherwise
+    """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def save_product_image(file):
+    """
+    Save an uploaded product image with a unique filename.
+    
+    Args:
+        file: FileStorage object from form upload
+        
+    Returns:
+        str: Relative path of saved image or None if file is invalid
+    """
     if file and allowed_file(file.filename):
-        # Get the original filename and extension
         filename = secure_filename(file.filename)
         name, ext = os.path.splitext(filename)
-        
-        # Generate the new filename with timestamp and random number
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         random_num = random.randint(1000, 9999)
         new_filename = f"{name}_{random_num}_{timestamp}{ext}"
-        
-        # Save the file using os.path.join for proper path handling
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         file.save(filepath)
-        
-        # Return the relative path for database storage
         return os.path.join('uploads', 'products', new_filename).replace('\\', '/')
     return None
 
@@ -68,6 +98,7 @@ def inject_cart():
         return {'user_cart': cart}
     return {'user_cart': None}
 
+# === Database Models ===
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
@@ -278,8 +309,61 @@ class Rating(db.Model):
     def __repr__(self):
         return f"<Rating {self.rating} stars by User {self.user_id} for Product {self.product_id}>"
 
+
+# === Login and Register Routes ===
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Handle user login with email and password."""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = User.query.filter_by(email=email).first()
+        
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            flash('Logged in successfully!', 'success')
+            return redirect(url_for('home'))
+        
+        flash('Invalid email or password', 'error')
+    return render_template('auth/login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Register a new user account."""
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        phone = request.form.get('phone')
+        is_seller = request.form.get('is_seller') == "on"
+        
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered', 'error')
+            return redirect(url_for('register'))
+        
+        hashed_password = generate_password_hash(password)
+        new_user = User(name=name, email=email, phone=phone, password=hashed_password, is_seller=is_seller)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash('Registration successful! Please login.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('auth/register.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Log out the current user."""
+    logout_user()
+    flash('Logged out successfully!', 'success')
+    return redirect(url_for('home'))
+
+
+# === Routes ===
 @app.route('/')
 def home():
+    """Display homepage with featured categories and products."""
     # Fetch categories with their images
     categories = Category.query.all()
     
@@ -326,6 +410,7 @@ def categories():
 
 @app.route('/api/subcategories/<int:category_id>')
 def get_subcategories(category_id):
+    """Get subcategories for a given category ID."""
     subcategories = SubCategory.query.filter_by(category_id=category_id).all()
     return jsonify([{
         'id': sub.id,
@@ -334,6 +419,7 @@ def get_subcategories(category_id):
 
 @app.route('/products')
 def products():
+    """Display product listing with filters and search."""
     # Get filter parameters
     category_id = request.args.get('category', type=int)
     subcategory_id = request.args.get('subcategory', type=int)
@@ -378,9 +464,12 @@ def products():
                          max_price=max_price,
                          sort=sort)
 
+# === Cart Routes ===
+
 @app.route('/cart')
 @login_required
 def cart():
+    """Display shopping cart contents."""
     # Get user's cart or create one if it doesn't exist
     cart = Cart.query.filter_by(user_id=current_user.id).first()
     if not cart:
@@ -393,6 +482,7 @@ def cart():
 @app.route('/cart/add/<int:product_id>', methods=['POST'])
 @login_required
 def add_to_cart(product_id):
+    """Add a product to shopping cart."""
     quantity = request.form.get('quantity', 1, type=int)
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
@@ -471,6 +561,7 @@ def remove_from_cart(item_id):
 @app.route('/checkout')
 @login_required
 def checkout():
+    """Display checkout page with order summary."""
     cart = Cart.query.filter_by(user_id=current_user.id).first()
     if not cart or not cart.items:
         flash('Your cart is empty', 'error')
@@ -484,6 +575,7 @@ def checkout():
 @app.route('/place-order', methods=['POST'])
 @login_required
 def place_order():
+    """Process and place a new order."""
     # Get user's cart
     cart = Cart.query.filter_by(user_id=current_user.id).first()
     if not cart or not cart.items:
@@ -590,9 +682,11 @@ def order_confirmation(order_id):
     
     return render_template('pages/order-confirmation.html', order=order)
 
+# === Seller Routes ===
 @app.route('/seller/dashboard')
 @login_required
 def seller_dashboard():
+    """Display seller dashboard with analytics and orders."""
     if not current_user.is_seller:
         flash('Access denied. Seller account required.', 'error')
         return redirect(url_for('home'))
@@ -753,9 +847,11 @@ def seller_dashboard():
                           order_status=order_status,
                           stats=stats)
 
+# === Product Routes ===
 @app.route('/seller/products/add', methods=['GET', 'POST'])
 @login_required
 def add_product():
+    """Add a new product listing."""
     if not current_user.is_seller:
         flash('Access denied. Seller account required.', 'error')
         return redirect(url_for('home'))
@@ -789,6 +885,7 @@ def add_product():
 @app.route('/seller/products/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_product(id):
+    """Edit an existing product listing."""
     if not current_user.is_seller:
         flash('Access denied. Seller account required.', 'error')
         return redirect(url_for('home'))
@@ -874,6 +971,7 @@ def delete_product(id):
 @app.route('/seller/orders/<int:id>')
 @login_required
 def order_details(id):
+    """Display order details for sellers."""
     if not current_user.is_seller:
         flash('Access denied. Seller account required.', 'error')
         return redirect(url_for('home'))
@@ -925,54 +1023,12 @@ def update_order_status(id):
     
     return redirect(url_for('order_details', id=id))
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        user = User.query.filter_by(email=email).first()
-        
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('home'))
-        
-        flash('Invalid email or password', 'error')
-    return render_template('auth/login.html')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        phone = request.form.get('phone')
-        is_seller = request.form.get('is_seller') == "on"
-        
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered', 'error')
-            return redirect(url_for('register'))
-        
-        hashed_password = generate_password_hash(password)
-        new_user = User(name=name, email=email, phone=phone, password=hashed_password, is_seller=is_seller)
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash('Registration successful! Please login.', 'success')
-        return redirect(url_for('login'))
-    
-    return render_template('auth/register.html')
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('Logged out successfully!', 'success')
-    return redirect(url_for('home'))
+# === Account Routes ===
 
 @app.route('/account')
 @login_required
 def account():
+    """Display user account dashboard with orders and settings."""
     # Get pagination parameters
     page = request.args.get('page', 1, type=int)
     per_page = 5  # Number of orders per page
@@ -1006,6 +1062,7 @@ def account():
 @app.route('/account/update', methods=['POST'])
 @login_required
 def update_account():
+    """Update user account information."""
     # Get form data
     name = request.form.get('name')
     email = request.form.get('email')
@@ -1030,6 +1087,7 @@ def update_account():
 @app.route('/account/change-password', methods=['POST'])
 @login_required
 def change_password():
+    """Change user account password."""
     # Get form data
     current_password = request.form.get('current_password')
     new_password = request.form.get('new_password')
@@ -1060,12 +1118,14 @@ def change_password():
 @app.route('/account/addresses')
 @login_required
 def view_addresses():
+    """View all addresses for the current user."""
     addresses = Address.query.filter_by(user_id=current_user.id).all()
     return render_template('pages/addresses.html', addresses=addresses)
 
 @app.route('/account/addresses/add', methods=['GET', 'POST'])
 @login_required
 def add_address():
+    """Add a new delivery address."""
     if request.method == 'POST':
         # Get form data
         line1 = request.form.get('line1')
@@ -1266,6 +1326,7 @@ def product_details(id):
 @app.route('/wishlist')
 @login_required
 def wishlist():
+    """Display user's wishlist items."""
     # Get user's wishlist items
     wishlist_items = WishlistItem.query.filter_by(user_id=current_user.id).all()
     
@@ -1308,6 +1369,7 @@ def wishlist():
 @app.route('/wishlist/add/<int:product_id>', methods=['POST'])
 @login_required
 def add_to_wishlist(product_id):
+    """Add a product to wishlist."""
     # Check if product already in wishlist
     existing_item = WishlistItem.query.filter_by(
         user_id=current_user.id,
@@ -1371,6 +1433,7 @@ def remove_from_wishlist(item_id):
 @app.route('/orders/<int:id>')
 @login_required
 def user_order_details(id):
+    """Display order details for users."""
     order = Order.query.get_or_404(id)
     
     # Check if the order belongs to the current user
@@ -1413,6 +1476,7 @@ def cancel_order(id):
 
 @app.route('/search')
 def search():
+    """Search products by name or description."""
     query = request.args.get('q', '')
     if not query:
         return redirect(url_for('products'))
@@ -1433,8 +1497,10 @@ def search():
                          categories=categories,
                          query=query)
 
+# === Database Initialization ===
 # Initialize database with categories
 def init_db():
+    """Initialize database with required tables."""
     with app.app_context():
         db.create_all()
         
